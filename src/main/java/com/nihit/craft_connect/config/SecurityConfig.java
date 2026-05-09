@@ -1,5 +1,6 @@
 package com.nihit.craft_connect.config;
 
+import com.nihit.craft_connect.exception.CustomExceptionHandler;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ import java.util.Collections;
 @EnableMethodSecurity
 @EnableWebSecurity
 @EnableWebMvc
+
 public class SecurityConfig extends WebMvcConfigurationSupport {
 
     @Autowired
@@ -39,6 +41,9 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
     private final JwtAuthenticationFilter filter;
     @Autowired
     private JwtAuthenticationEntryPoint point;
+
+    @Autowired
+    private CustomExceptionHandler exceptionHandler;
 
     @Autowired
     @Qualifier("handlerExceptionResolver")

@@ -4,6 +4,7 @@ package com.nihit.craft_connect.exception;
 import com.nihit.craft_connect.config.CustomMessageSource;
 import com.nihit.craft_connect.constants.ErrorCodeConstants;
 import com.nihit.craft_connect.constants.FieldErrorConstant;
+import com.nihit.craft_connect.dto.exception.ApiError;
 import com.nihit.craft_connect.dto.exception.GlobalExceptionResponse;
 import com.nihit.craft_connect.enums.ResponseStatus;
 import com.nihit.craft_connect.utils.Capital;
@@ -215,6 +216,31 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 
         GlobalExceptionResponse response = new GlobalExceptionResponse(ResponseStatus.FAILURE, httpStatus.value(), userMessage, rootCauseMessage);
         return new ResponseEntity<>(response, httpStatus);
+    }
+    @ExceptionHandler(InvalidCredentialsException.class)
+    @ResponseBody
+    public ResponseEntity<Object> handleInvalidCredentials(
+            InvalidCredentialsException ex) {
+
+        HttpStatus httpStatus = HttpStatus.BAD_REQUEST;
+
+        GlobalExceptionResponse response =
+                new GlobalExceptionResponse(
+                        ResponseStatus.FAILURE,
+                        httpStatus.value(),
+                        ex.getMessage(),
+                        ex.getMessage()
+                );
+
+        return new ResponseEntity<>(response, httpStatus);
+    }
+    @ExceptionHandler({AppException.class})
+    public ResponseEntity<Object> handleAppException(final Exception ex, final WebRequest request) {
+        logger.error(ex.getClass().getName());
+        logger.error("error", ex);
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        final ApiError apiError = new ApiError(ResponseStatus.FAILURE, httpStatus.value(), ex.getMessage(), ex.getMessage());
+        return new ResponseEntity<>(apiError, new HttpHeaders(), httpStatus);
     }
 
 }

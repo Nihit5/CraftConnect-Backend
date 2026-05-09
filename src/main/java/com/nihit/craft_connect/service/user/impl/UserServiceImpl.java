@@ -11,6 +11,7 @@ import com.nihit.craft_connect.dto.user.UserRequestPojo;
 import com.nihit.craft_connect.dto.user.UserResponsePojo;
 import com.nihit.craft_connect.entity.User;
 import com.nihit.craft_connect.exception.AppException;
+import com.nihit.craft_connect.exception.InvalidCredentialsException;
 import com.nihit.craft_connect.repository.UserRepository;
 import com.nihit.craft_connect.service.file.FileService;
 import com.nihit.craft_connect.service.user.UserService;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -74,30 +76,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginResponse login(LoginRequest loginRequest){
-        Optional<User> theUser = userRepository.findByEmail(loginRequest.getEmail());
-        LoginResponse response = new LoginResponse();
-        if (theUser.isPresent()) {
-            User user = theUser.get();
-            System.out.println(user.getEmail());
+    public LoginResponse login(LoginRequest loginRequest) {
 
-            try {
-                Authentication authentication = authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),loginRequest.getPassword())
+        User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() ->
+                        new AppException("User not found")
                 );
-                if (authentication.isAuthenticated()) {
-                    response.setToken(jwtTokenHelper.generateToken(user.getEmail(),"user"));
-                    response.setTokenExpiryDate(jwtTokenHelper.getExpirationDateFromToken(jwtTokenHelper.generateToken(user.getEmail(),"user")));
-                    return response;
-                } else {
-                    throw new AppException("Invalid username or password");
-                }
-            } catch (AuthenticationException e) {
-                throw new AppException("Failed to login into the system");
-            }
 
-        } else {
-            throw new AppException(customMessageSource.get(StringConstants.NOT_FOUND, theUser.get().getEmail()));
+        try {
+
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
+
+            String token = jwtTokenHelper.generateToken(user.getEmail(), "user");
+
+            LoginResponse response = new LoginResponse();
+            response.setToken(token);
+            response.setTokenExpiryDate(
+                    jwtTokenHelper.getExpirationDateFromToken(token)
+            );
+
+            return response;
+
+        } catch (BadCredentialsException e) {
+            throw new InvalidCredentialsException("Invalid email or password");
+        } catch (AuthenticationException e) {
+            throw new AppException("Authentication failed");
         }
     }
 }
