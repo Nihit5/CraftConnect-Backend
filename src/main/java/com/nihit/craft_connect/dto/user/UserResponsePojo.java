@@ -16,6 +16,5 @@ public class UserResponsePojo {
     private String lastName;
     private String email;
     private String mobileNumber;
-    private String password;
     private String role;
 }

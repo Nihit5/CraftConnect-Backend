@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -43,40 +44,10 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
     @Qualifier("handlerExceptionResolver")
     private HandlerExceptionResolver exceptionResolver;
     private static final String[] UN_SECURED_URLs = {
-            "/api/v1/auth/**",
-            "/api/v1/article/category/{title}",
-            "/api/v1/article/articles",
-            "/api/v1/category/{categoryId}",
-            "/api/v1/category/categories",
-            "/api/v1/article/{articleId}",
-            "/api/v1/comment/article/{articleId}",
-            "/api/v1/comment/comments",
-            "/api/v1/comment/{commentId}",
-            "/api/v1/ad/createAd",
-            "/api/v1/ad/image/{adId}",
-            "/api/v1/ad/{adId}",
-            "/api/v1/ad/homeAds",
-            "/api/v1/ad/applicationAds",
-            "/api/v1/ad/articleAds",
-            "/api/v1/ad/ads",
-            "/api/v1/createLegalAndSupport",
-            "/api/v1/legalAndSupports",
-            "/api/v1/user/register"
-
+            "/api/v1/user/register",
+            "/api/v1/user/login"
     };
-    private static final String[] REPORTER_SECURED_URLs = {
-            "/api/v1/article/postArticle",
-            "/api/v1/article/user/articles"
 
-    };
-    private static final String[] ADMIN_SECURED_URLs = {
-            "/api/v1/category/create",
-            "/api/v1/category/update/{categoryId}",
-            "/api/v1/category/delete/{categoryId}",
-            "/api/v1/ad/updateAd/{adId}",
-            "/api/v1/update/{id}"
-
-    };
     public SecurityConfig(JwtAuthenticationFilter filter) {
         this.filter = filter;
     }
@@ -95,10 +66,9 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
         authenticationProvider.setPasswordEncoder(passwordEncoder());
         return authenticationProvider;
     }
-
     @Bean
-    public AuthenticationManager authenticationManager() {
-        return new ProviderManager(Collections.singletonList(userAuthenticationProvider()));
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
@@ -108,18 +78,8 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers(UN_SECURED_URLs).permitAll()
-
+                        .anyRequest().authenticated()
                 )
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers(REPORTER_SECURED_URLs).hasAuthority("ROLE_REPORTER")
-
-                )
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers(ADMIN_SECURED_URLs).hasAuthority("ROLE_ADMIN")
-
-                )
-                .authorizeHttpRequests((auth)->auth
-                        .requestMatchers("/api/v1/user/**","/api/v1/article/{articleId}/like","/api/v1/article/disable/{articleId}","/api/v1/article/disabledArticles","/api/v1/comment/**","/api/v1/like/**").authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 

@@ -1,8 +1,12 @@
 package com.nihit.craft_connect.service.user.impl;
 
 import com.nihit.craft_connect.config.CustomMessageSource;
+import com.nihit.craft_connect.config.JwtTokenHelper;
 import com.nihit.craft_connect.constants.ErrorConstants;
+import com.nihit.craft_connect.constants.MessageConstant;
 import com.nihit.craft_connect.constants.StringConstants;
+import com.nihit.craft_connect.dto.login.LoginRequest;
+import com.nihit.craft_connect.dto.login.LoginResponse;
 import com.nihit.craft_connect.dto.user.UserRequestPojo;
 import com.nihit.craft_connect.dto.user.UserResponsePojo;
 import com.nihit.craft_connect.entity.User;
@@ -11,8 +15,19 @@ import com.nihit.craft_connect.repository.UserRepository;
 import com.nihit.craft_connect.service.file.FileService;
 import com.nihit.craft_connect.service.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +36,8 @@ public class UserServiceImpl implements UserService {
     private final CustomMessageSource customMessageSource;
     private final PasswordEncoder passwordEncoder;
     private final FileService fileService;
+    private final JwtTokenHelper jwtTokenHelper;
+    private final AuthenticationManager authenticationManager;
     private static final String FILE_LOCATION = "users";
 
     @Override
@@ -34,6 +51,9 @@ public class UserServiceImpl implements UserService {
         }
         else {
             user = new User();
+        }
+        if (!Objects.equals(userRequestPojo.getPassword(), userRequestPojo.getConfirmPassword())) {
+            throw new AppException(customMessageSource.get(StringConstants.INVALID_PASSWORD));
         }
         user.setFirstName(userRequestPojo.getFirstName());
         user.setLastName(userRequestPojo.getLastName());
@@ -53,5 +73,31 @@ public class UserServiceImpl implements UserService {
         return userResponsePojo;
     }
 
-    public PageUserRequestPojo
+    @Override
+    public LoginResponse login(LoginRequest loginRequest){
+        Optional<User> theUser = userRepository.findByEmail(loginRequest.getEmail());
+        LoginResponse response = new LoginResponse();
+        if (theUser.isPresent()) {
+            User user = theUser.get();
+            System.out.println(user.getEmail());
+
+            try {
+                Authentication authentication = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(loginRequest.getEmail(),loginRequest.getPassword())
+                );
+                if (authentication.isAuthenticated()) {
+                    response.setToken(jwtTokenHelper.generateToken(user.getEmail(),"user"));
+                    response.setTokenExpiryDate(jwtTokenHelper.getExpirationDateFromToken(jwtTokenHelper.generateToken(user.getEmail(),"user")));
+                    return response;
+                } else {
+                    throw new AppException("Invalid username or password");
+                }
+            } catch (AuthenticationException e) {
+                throw new AppException("Failed to login into the system");
+            }
+
+        } else {
+            throw new AppException(customMessageSource.get(StringConstants.NOT_FOUND, theUser.get().getEmail()));
+        }
+    }
 }

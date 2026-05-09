@@ -40,5 +40,11 @@ public class BaseController {
         response.setData(data);
         return response;
     }
-
+    protected GlobalApiResponse failureResponse(String message, Object data) {
+        GlobalApiResponse apiResponse = new GlobalApiResponse();
+        apiResponse.setMessage(message);
+        apiResponse.setData(data);
+        apiResponse.setStatus(ResponseStatus.FAILURE);
+        return apiResponse;
+    }
 }

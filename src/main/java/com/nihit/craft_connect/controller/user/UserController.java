@@ -1,8 +1,10 @@
 package com.nihit.craft_connect.controller.user;
 
+import com.nihit.craft_connect.constants.StringConstants;
 import com.nihit.craft_connect.constants.SuccessConstants;
 import com.nihit.craft_connect.controller.BaseController;
 import com.nihit.craft_connect.dto.GlobalApiResponse;
+import com.nihit.craft_connect.dto.login.LoginRequest;
 import com.nihit.craft_connect.dto.user.UserRequestPojo;
 import com.nihit.craft_connect.service.user.UserService;
 import jakarta.validation.Valid;
@@ -19,13 +21,19 @@ public class UserController extends BaseController {
 
     @PostMapping("/register")
     public ResponseEntity<GlobalApiResponse> save(@Valid @ModelAttribute UserRequestPojo userRequestPojo) {
-        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_CREATE),
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_CREATE, StringConstants.USER),
                 userService.saveOrUpdate(userRequestPojo)));
     }
 
     @PutMapping("/update")
     public ResponseEntity<GlobalApiResponse> update(@Valid @ModelAttribute UserRequestPojo userRequestPojo) {
-        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_CREATE),
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_UPDATE, StringConstants.USER),
                 userService.saveOrUpdate(userRequestPojo)));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<GlobalApiResponse> login(@RequestBody @Valid LoginRequest request) {
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_LOGIN),
+                userService.login(request)));
     }
 }

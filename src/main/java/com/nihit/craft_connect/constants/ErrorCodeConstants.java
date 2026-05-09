@@ -8,5 +8,6 @@ public class ErrorCodeConstants {
     public static final String PATTERN = "Pattern";
     public static final String EMAIL = "Email";
     public static final String LENGTH = "Length";
+    public static final String FUNCTION_EXCEPTION="function_exception_";
 
 }

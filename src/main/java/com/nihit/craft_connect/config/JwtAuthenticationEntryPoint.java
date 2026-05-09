@@ -12,11 +12,19 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        System.out.println("JwtAuthenticationEntryPoint: Access Denied !!");
-        System.out.println("Request URI: " + request.getRequestURI());
-        System.out.println("Exception message: " + authException.getMessage());
+    public void commence(HttpServletRequest request,
+                         HttpServletResponse response,
+                         AuthenticationException ex) throws IOException {
+
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.getWriter().write("{\"error\": \"Invalid or expired token\"}");
+        response.setContentType("application/json");
+
+        response.getWriter().write("""
+        {
+            "status": 401,
+            "error": "Unauthorized",
+            "message": "Invalid or missing token"
+        }
+        """);
     }
 }
