@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1/enum")
 @RequiredArgsConstructor
 public class GeneralEnumController extends BaseController {
-    @GetMapping("/condition/list")
+    @GetMapping("/status")
     public ResponseEntity<GlobalApiResponse> getActionList() {
         return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE),
                 Status.getStatusList()));

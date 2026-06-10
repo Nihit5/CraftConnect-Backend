@@ -18,6 +18,7 @@ public class LoginResponse {
     @JsonIgnore
     private Date tokenExpiryDate;
     private String formattedTokenExpiryDate;
+    private String role;
 
 
     public void setTokenExpiryDate(Date tokenExpiryDate) {

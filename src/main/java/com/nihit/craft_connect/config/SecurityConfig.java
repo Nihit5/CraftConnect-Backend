@@ -50,7 +50,8 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
     private HandlerExceptionResolver exceptionResolver;
     private static final String[] UN_SECURED_URLs = {
             "/api/v1/user/register",
-            "/api/v1/user/login"
+            "/api/v1/user/login",
+            "/api/v1/location/**"
     };
 
     public SecurityConfig(JwtAuthenticationFilter filter) {

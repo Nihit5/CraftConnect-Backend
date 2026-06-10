@@ -134,6 +134,7 @@ public class UserServiceImpl implements UserService {
             response.setTokenExpiryDate(
                     jwtTokenHelper.getExpirationDateFromToken(token)
             );
+            response.setRole(user.getRole());
 
             return response;
 
