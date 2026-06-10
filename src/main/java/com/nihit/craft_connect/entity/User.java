@@ -11,7 +11,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "user")
+@Table(
+        name = "user",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "email"),
+                @UniqueConstraint(columnNames = "mobile_number")
+        }
+)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,9 +26,9 @@ public class User {
     private String firstName;
     @Column(name = "last_name")
     private String lastName;
-    @Column(name = "email")
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
-    @Column(name = "mobile_number")
+    @Column(name = "mobile_number", unique = true, nullable = false)
     private String mobileNumber;
     @Column(name = "password")
     private String password;
@@ -30,4 +36,7 @@ public class User {
     private String role;
     @Column(name = "image_path")
     private String displayPicturePath;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "vendor_details_id")
+    private VendorDetails vendorDetails;
 }

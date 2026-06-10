@@ -10,6 +10,8 @@ import com.nihit.craft_connect.dto.login.LoginResponse;
 import com.nihit.craft_connect.dto.user.UserRequestPojo;
 import com.nihit.craft_connect.dto.user.UserResponsePojo;
 import com.nihit.craft_connect.entity.User;
+import com.nihit.craft_connect.entity.VendorDetails;
+import com.nihit.craft_connect.enums.Status;
 import com.nihit.craft_connect.exception.AppException;
 import com.nihit.craft_connect.exception.InvalidCredentialsException;
 import com.nihit.craft_connect.repository.UserRepository;
@@ -53,6 +55,12 @@ public class UserServiceImpl implements UserService {
         }
         else {
             user = new User();
+            if (userRepository.existsByEmail(userRequestPojo.getEmail())) {
+                throw new AppException("Email already exists");
+            }
+            if (userRepository.existsByMobileNumber(userRequestPojo.getMobileNumber())) {
+                throw new AppException("Mobile number already exists");
+            }
         }
         if (!Objects.equals(userRequestPojo.getPassword(), userRequestPojo.getConfirmPassword())) {
             throw new AppException(customMessageSource.get(StringConstants.INVALID_PASSWORD));
@@ -62,8 +70,37 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userRequestPojo.getEmail());
         user.setPassword(passwordEncoder.encode(userRequestPojo.getPassword()));
         user.setMobileNumber(userRequestPojo.getMobileNumber());
-        user.setRole(userRequestPojo.getRole());
+        if ("ROLE_VENDOR".equals(userRequestPojo.getRole())) {
+            user.setRole("ROLE_VENDOR");
+        } else if ("ROLE_ARTIST".equals(userRequestPojo.getRole())) {
+            user.setRole("ROLE_ARTIST");
+        }
+        else {
+            user.setRole("ROLE_USER");
+        }
         user.setDisplayPicturePath(fileService.uploadAttachment(userRequestPojo.getDisplayPicture(), FILE_LOCATION));
+        if ("ROLE_VENDOR".equals(userRequestPojo.getRole())) {
+
+            VendorDetails vendorDetails = new VendorDetails();
+
+            vendorDetails.setBusinessName(userRequestPojo.getBusinessName());
+
+            vendorDetails.setProvince(userRequestPojo.getProvince());
+
+            vendorDetails.setDistrict(userRequestPojo.getDistrict());
+
+            vendorDetails.setAddress(userRequestPojo.getAddress());
+
+            vendorDetails.setCitizenshipFrontImagePath(fileService.uploadAttachment(userRequestPojo.getCitizenshipFrontImage(), FILE_LOCATION));
+
+            vendorDetails.setCitizenshipBackImagePath(fileService.uploadAttachment(userRequestPojo.getCitizenshipBackImage(), FILE_LOCATION));
+
+            vendorDetails.setPancardPath(fileService.uploadAttachment(userRequestPojo.getPanCardImage(), FILE_LOCATION));
+
+            vendorDetails.setStatus(Status.PENDING);
+
+            user.setVendorDetails(vendorDetails);
+        }
         userRepository.save(user);
         UserResponsePojo userResponsePojo = new UserResponsePojo();
         userResponsePojo.setId(user.getId());

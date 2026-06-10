@@ -38,4 +38,13 @@ public class UserRequestPojo {
     @NotBlank(message = FieldErrorConstant.NOT_BLANK)
     private String role;
     private MultipartFile displayPicture;
+    private String businessName;
+    private String province;
+    private String district;
+    private String address;
+
+    private MultipartFile citizenshipFrontImage;
+    private MultipartFile citizenshipBackImage;
+    private MultipartFile panCardImage;
+    private String status;
 }
