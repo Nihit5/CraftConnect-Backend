@@ -154,10 +154,12 @@ public class UserServiceImpl implements UserService {
     User user = userRepository.findById(userDetailConfig.getLoggedInUserId())
             .orElseThrow(() -> new AppException("User not found"));
     UserDetailsPojo userDetailsPojo = new UserDetailsPojo();
+    userDetailsPojo.setId(user.getId());
     userDetailsPojo.setFirstName(user.getFirstName());
     userDetailsPojo.setLastName(user.getLastName());
     userDetailsPojo.setEmail(user.getEmail());
     userDetailsPojo.setMobileNumber(user.getMobileNumber());
+    userDetailsPojo.setDisplayPicture(extractFileName(user.getDisplayPicturePath()));
     userDetailsPojo.setRole(user.getRole());
     if (user.getRole().equals("ROLE_VENDOR")) {
         userDetailsPojo.setBusinessName(user.getVendorDetails().getBusinessName());

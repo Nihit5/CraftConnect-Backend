@@ -11,10 +11,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDetailsPojo {
+    private Long id;
     private String firstName;
     private String lastName;
     private String email;
     private String mobileNumber;
+    private String displayPicture;
     private String role;
     private String businessName;
     private String province;
