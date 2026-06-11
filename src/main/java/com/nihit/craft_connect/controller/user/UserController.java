@@ -36,4 +36,10 @@ public class UserController extends BaseController {
         return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_LOGIN),
                 userService.login(request)));
     }
+
+    @GetMapping("/init")
+    public ResponseEntity<GlobalApiResponse> init() {
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE),
+                userService.getUserDetails()));
+    }
 }

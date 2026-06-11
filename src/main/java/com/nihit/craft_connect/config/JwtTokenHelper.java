@@ -47,6 +47,14 @@ public class JwtTokenHelper {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
+    public Long extractUserId(String token) {
+        Object value = extractAllClaims(token).get("userId");
+
+        if (value instanceof Integer) {
+            return ((Integer) value).longValue();
+        }
+        return Long.parseLong(value.toString());
+    }
     public String extractUserTypeFromToken(String theToken) {
         return extractClaim(theToken, claims -> claims.get("userType", String.class));
     }
@@ -69,10 +77,11 @@ public class JwtTokenHelper {
     }
 
 
-    public String generateToken(String userName, String userType) {
+    public String generateToken(Long userId, String username, String userType) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userType", userType); // Add user type to claims
-        return doGenerateToken(claims, userName);
+        claims.put("userId", userId);
+        claims.put("userType", userType);
+        return doGenerateToken(claims, username);
     }
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         long expirationTimeInMilliseconds = 5 * 60 * 60 * 1000;
@@ -91,4 +100,13 @@ public class JwtTokenHelper {
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }}
+    }
+
+   public String extractUsername(String token) {
+        return extractAllClaims(token).get("username", String.class);
+    }
+
+    public Map<String, Object> getAllClaimsAsMap(String token) {
+        return new HashMap<>(extractAllClaims(token));
+    }
+}

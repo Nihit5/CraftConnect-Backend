@@ -22,4 +22,5 @@ public final class MessageConstant {
     public static final String USER_LIST = "user list";
     public static final String NOT_IMPORTED_YET = "not.imported.yet";
     public static final String BALANCES_ALREADY_SET = "balances.already.set";
+    public static final String ERROR_FILE_NOT_EXIST = "error.file.does.not.exist";
 }
