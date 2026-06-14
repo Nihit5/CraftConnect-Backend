@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
         else {
             user.setRole("ROLE_USER");
         }
-        user.setDisplayPicturePath(fileService.uploadAttachment(userRequestPojo.getDisplayPicture(), FILE_LOCATION));
+        user.setDisplayPicturePath(fileService.uploadAttachment(userRequestPojo.getDisplayPicture()));
         if ("ROLE_VENDOR".equals(userRequestPojo.getRole())) {
 
             VendorDetails vendorDetails = new VendorDetails();
@@ -95,13 +95,13 @@ public class UserServiceImpl implements UserService {
 
             vendorDetails.setAddress(userRequestPojo.getAddress());
 
-            vendorDetails.setCitizenshipFrontImagePath(fileService.uploadAttachment(userRequestPojo.getCitizenshipFrontImage(), FILE_LOCATION));
+            vendorDetails.setCitizenshipFrontImagePath(fileService.uploadAttachment(userRequestPojo.getCitizenshipFrontImage()));
 
-            vendorDetails.setCitizenshipBackImagePath(fileService.uploadAttachment(userRequestPojo.getCitizenshipBackImage(), FILE_LOCATION));
+            vendorDetails.setCitizenshipBackImagePath(fileService.uploadAttachment(userRequestPojo.getCitizenshipBackImage()));
 
-            vendorDetails.setPancardPath(fileService.uploadAttachment(userRequestPojo.getPanCardImage(), FILE_LOCATION));
+            vendorDetails.setPancardPath(fileService.uploadAttachment(userRequestPojo.getPanCardImage()));
 
-            vendorDetails.setStatus(Status.PENDING);
+            vendorDetails.setStatus(Status.valueOf(userRequestPojo.getStatus()));
 
             user.setVendorDetails(vendorDetails);
         }

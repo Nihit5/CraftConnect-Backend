@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -83,8 +84,16 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
         http
                 .csrf(csrf -> csrf.disable())
                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests((auth) -> auth
+                .authorizeHttpRequests(auth -> auth
+
                         .requestMatchers(UN_SECURED_URLs).permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/category/*").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/v1/category/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/category/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/category/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

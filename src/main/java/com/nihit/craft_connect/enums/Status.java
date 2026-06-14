@@ -11,9 +11,7 @@ public enum Status {
     PENDING("PENDING", "Pending"),
     APPROVED("APPROVED", "Approved"),
     REJECTED("REJECTED", "Rejected"),
-    SUSPENDED("SUSPENDED", "Suspended"),
-    ACTIVE("ACTIVE", "Active"),
-    INACTIVE("INACTIVE", "Inactive");
+    SUSPENDED("SUSPENDED", "Suspended");
 
     private final String key;
     private final String value;

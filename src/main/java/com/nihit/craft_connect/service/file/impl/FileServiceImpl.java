@@ -33,7 +33,7 @@ public class FileServiceImpl implements FileService {
     private String attachmentPath;
     private final UserDetailConfig userDetailConfig;
     @Override
-    public String uploadAttachment(MultipartFile multipartFile, String location) {
+    public String uploadAttachment(MultipartFile multipartFile) {
 
         if (multipartFile == null || multipartFile.isEmpty()) {
             return null;
@@ -42,7 +42,7 @@ public class FileServiceImpl implements FileService {
             String originalFileName = multipartFile.getOriginalFilename();
             String fileExtension = FilenameUtils.getExtension(originalFileName);
             String fileName = UUID.randomUUID() + "." + fileExtension;
-            File directory = new File(attachmentPath + File.separator + location);
+            File directory = new File(attachmentPath);
 
             if (!directory.exists()) {
                 directory.mkdirs();
@@ -112,7 +112,7 @@ public class FileServiceImpl implements FileService {
     public Resource getFileByName(String fileName) {
 
         try {
-            Path filePath = Paths.get(attachmentPath, "users", fileName).normalize();
+            Path filePath = Paths.get(attachmentPath, fileName).normalize();
 
             Resource resource = new UrlResource(filePath.toUri());
 

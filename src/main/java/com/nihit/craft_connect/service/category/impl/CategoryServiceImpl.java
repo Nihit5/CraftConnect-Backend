@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Paths;
 import java.util.List;
 
 @Service
@@ -21,7 +22,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CustomMessageSource customMessageSource;
     private final FileService fileService;
-    private static final String FILE_LOCATION = "categories";
+    private static final String FILE_LOCATION = "users";
     private final ModelMapper modelMapper;
 
     @Override
@@ -35,7 +36,7 @@ public class CategoryServiceImpl implements CategoryService {
             category = new Category();
         }
             category.setName(categoryDto.getName());
-            category.setImagePath(fileService.uploadAttachment(categoryDto.getImage(), FILE_LOCATION));
+            category.setImagePath(fileService.uploadAttachment(categoryDto.getImage()));
         categoryRepository.save(category);
         CategoryDto categoryDtoSaved = new CategoryDto();
         categoryDtoSaved.setId(category.getId());
@@ -47,21 +48,40 @@ public class CategoryServiceImpl implements CategoryService {
     public List<CategoryDto> findAll() {
         List<Category> categories = categoryRepository.findAll();
 
-        return categories.stream()
-                .map(category -> modelMapper.map(category, CategoryDto.class))
+        return categories.stream().map(category -> {
+                    CategoryDto dto = modelMapper.map(category, CategoryDto.class);
+
+                    dto.setImagePath(extractFileName(category.getImagePath()));
+
+                    return dto;
+                })
                 .toList();
     }
 
     @Override
     public CategoryDto findById(Long id) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new AppException(customMessageSource.get(StringConstants.NOT_FOUND, id)));
+                .orElseThrow(() -> new AppException(
+                        customMessageSource.get(StringConstants.NOT_FOUND, id)
+                ));
 
-        return modelMapper.map(category, CategoryDto.class);
+        CategoryDto dto = modelMapper.map(category, CategoryDto.class);
+
+        dto.setImagePath(
+                extractFileName(category.getImagePath())
+        );
+
+        return dto;
     }
 
     @Override
     public void deleteById(Long id){
         categoryRepository.deleteById(id);
+    }
+    public String extractFileName(String fullPath) {
+        if (fullPath == null || fullPath.isBlank()) {
+            return null;
+        }
+        return Paths.get(fullPath).getFileName().toString();
     }
 }

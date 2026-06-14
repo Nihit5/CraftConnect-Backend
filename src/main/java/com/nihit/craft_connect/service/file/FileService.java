@@ -8,7 +8,7 @@ import java.util.List;
 
 @Service
 public interface FileService {
-    String uploadAttachment(MultipartFile multipartFile, String location);
+    String uploadAttachment(MultipartFile multipartFile);
     byte[] downloadFile(String filePath);
     List<String> loadAllFiles(String location);
     Resource getFileByName(String fileName);
