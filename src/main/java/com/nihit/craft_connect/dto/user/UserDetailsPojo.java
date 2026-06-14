@@ -25,4 +25,5 @@ public class UserDetailsPojo {
     private String citizenshipFrontImagePath;
     private String citizenshipBackImagePath;
     private String pancardPath;
+    private String status;
 }

@@ -169,6 +169,7 @@ public class UserServiceImpl implements UserService {
         userDetailsPojo.setCitizenshipFrontImagePath(extractFileName(user.getVendorDetails().getCitizenshipFrontImagePath()));
         userDetailsPojo.setCitizenshipBackImagePath(extractFileName(user.getVendorDetails().getCitizenshipBackImagePath()));
         userDetailsPojo.setPancardPath(extractFileName(user.getVendorDetails().getPancardPath()));
+        userDetailsPojo.setStatus(String.valueOf(user.getVendorDetails().getStatus()));
     }
     return userDetailsPojo;
     }

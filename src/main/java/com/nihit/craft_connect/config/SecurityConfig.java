@@ -54,6 +54,7 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
             "/api/v1/location/**"
     };
 
+
     public SecurityConfig(JwtAuthenticationFilter filter) {
         this.filter = filter;
     }
