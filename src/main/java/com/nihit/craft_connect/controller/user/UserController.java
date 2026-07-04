@@ -49,4 +49,10 @@ public class UserController extends BaseController {
         return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE),
                 userService.getAll(role, status)));
     }
+
+    @PutMapping("/update-status")
+    public ResponseEntity<GlobalApiResponse> updateStatus(@RequestParam Long id, @RequestParam Status status) {
+        userService.updateStatus(id, status);
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_UPDATE, StringConstants.USER)));
+    }
 }

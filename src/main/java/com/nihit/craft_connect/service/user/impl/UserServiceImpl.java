@@ -182,14 +182,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDetailsPojo> getAll(String role, Status status) {
-
         List<User> users;
         users = userRepository.findByRoleAndStatus(role, status);
-
         return users.stream()
                 .map(this::map)
                 .toList();
     }
+
+    @Override
+    public void updateStatus(Long id, Status status) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new AppException(
+                        customMessageSource.get(
+                                StringConstants.NOT_FOUND,
+                                "USER"
+                        )
+                ));
+        try {
+            user.setStatus(status);
+        } catch (IllegalArgumentException ex) {
+            throw new AppException("Invalid status.");
+        }
+        userRepository.save(user);
+    }
+
     private UserDetailsPojo map(User user) {
 
         UserDetailsPojo response = new UserDetailsPojo();

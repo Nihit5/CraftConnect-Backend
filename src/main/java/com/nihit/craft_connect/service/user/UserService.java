@@ -16,4 +16,5 @@ public interface UserService {
     LoginResponse login(LoginRequest loginRequest);
     UserDetailsPojo getUserDetails();
     List<UserDetailsPojo> getAll(String role, Status status);
+    void updateStatus(Long id, Status status);
 }
