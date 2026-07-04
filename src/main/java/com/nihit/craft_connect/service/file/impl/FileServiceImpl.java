@@ -126,4 +126,10 @@ public class FileServiceImpl implements FileService {
             throw new AppException("File download failed");
         }
     }
+    public String extractFileName(String fullPath) {
+        if (fullPath == null || fullPath.isBlank()) {
+            return null;
+        }
+        return Paths.get(fullPath).getFileName().toString();
+    }
 }

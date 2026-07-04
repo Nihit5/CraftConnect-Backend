@@ -12,5 +12,6 @@ public interface FileService {
     byte[] downloadFile(String filePath);
     List<String> loadAllFiles(String location);
     Resource getFileByName(String fileName);
+    String extractFileName(String fullPath);
 }
 
