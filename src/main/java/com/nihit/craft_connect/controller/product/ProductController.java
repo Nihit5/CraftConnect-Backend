@@ -29,9 +29,12 @@ public class ProductController extends BaseController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<GlobalApiResponse> list() {
+    public ResponseEntity<GlobalApiResponse> getAll(
+            @RequestParam(defaultValue = "0") Integer start,
+            @RequestParam(defaultValue = "10") Integer length) {
+
         return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE, "Product"),
-                productService.getAll()));
+                productService.getAll(start, length)));
     }
 
     @GetMapping("/{id}")

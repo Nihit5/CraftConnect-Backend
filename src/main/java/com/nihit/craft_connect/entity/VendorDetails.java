@@ -31,7 +31,4 @@ public class VendorDetails {
     private String citizenshipBackImagePath;
     @Column(name = "pancard_path")
     private String pancardPath;
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    private Status status;
 }

@@ -3,6 +3,7 @@ package com.nihit.craft_connect.repository;
 import com.nihit.craft_connect.dto.location.DistrictDto;
 import com.nihit.craft_connect.dto.location.ProvinceDto;
 import com.nihit.craft_connect.entity.User;
+import com.nihit.craft_connect.enums.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -19,4 +20,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<DistrictDto> fetchDistricts(Long provinceId);
     @Query(value = "select * from provinces order by province_id", nativeQuery = true)
     List<ProvinceDto> fetchProvinces();
+    List<User> findByRoleAndStatus(String role, Status status);
 }

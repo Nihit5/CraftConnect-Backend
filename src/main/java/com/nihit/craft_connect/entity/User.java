@@ -1,5 +1,6 @@
 package com.nihit.craft_connect.entity;
 
+import com.nihit.craft_connect.enums.Status;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,6 +37,9 @@ public class User {
     private String role;
     @Column(name = "image_path")
     private String displayPicturePath;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private Status status;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "vendor_details_id")
     private VendorDetails vendorDetails;

@@ -3,6 +3,7 @@ package com.nihit.craft_connect.service.product.impl;
 import com.nihit.craft_connect.config.CustomMessageSource;
 import com.nihit.craft_connect.config.UserDetailConfig;
 import com.nihit.craft_connect.constants.StringConstants;
+import com.nihit.craft_connect.dto.PaginationResponsePojo;
 import com.nihit.craft_connect.dto.product.ProductRequestPojo;
 import com.nihit.craft_connect.dto.product.ProductResponsePojo;
 import com.nihit.craft_connect.entity.Category;
@@ -14,8 +15,11 @@ import com.nihit.craft_connect.repository.ProductRepository;
 import com.nihit.craft_connect.repository.UserRepository;
 import com.nihit.craft_connect.service.file.FileService;
 import com.nihit.craft_connect.service.product.ProductService;
+import com.nihit.craft_connect.utils.PaginationUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -127,13 +131,26 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponsePojo> getAll() {
+    public PaginationResponsePojo<ProductResponsePojo> getAll(Integer start, Integer length) {
 
-        List<Product> products = productRepository.findAllWithUserAndCategory();
+        Pageable pageable = PaginationUtil.getPageable(start, length);
 
-        return products.stream()
-                .map(this::map)
-                .toList();
+        Page<Product> page = productRepository.findAll(pageable);
+
+        PaginationResponsePojo<ProductResponsePojo> response = new PaginationResponsePojo<>();
+
+        response.setContent(
+                page.getContent()
+                        .stream()
+                        .map(this::map)
+                        .toList()
+        );
+
+        response.setTotalElements(page.getTotalElements());
+        response.setTotalPages(page.getTotalPages());
+        response.setCurrentPage(page.getNumber());
+        response.setPageSize(page.getSize());
+        return response;
     }
 
     @Override

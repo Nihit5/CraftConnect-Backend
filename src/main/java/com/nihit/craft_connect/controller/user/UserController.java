@@ -6,6 +6,7 @@ import com.nihit.craft_connect.controller.BaseController;
 import com.nihit.craft_connect.dto.GlobalApiResponse;
 import com.nihit.craft_connect.dto.login.LoginRequest;
 import com.nihit.craft_connect.dto.user.UserRequestPojo;
+import com.nihit.craft_connect.enums.Status;
 import com.nihit.craft_connect.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +42,11 @@ public class UserController extends BaseController {
     public ResponseEntity<GlobalApiResponse> init() {
         return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE),
                 userService.getUserDetails()));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<GlobalApiResponse> getAllUsers(@RequestParam String role, @RequestParam Status status) {
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE),
+                userService.getAll(role, status)));
     }
 }

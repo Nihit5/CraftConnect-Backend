@@ -31,10 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +62,17 @@ public class UserServiceImpl implements UserService {
             if (userRepository.existsByMobileNumber(userRequestPojo.getMobileNumber())) {
                 throw new AppException("Mobile number already exists");
             }
+            if ("ROLE_VENDOR".equals(userRequestPojo.getRole())) {
+                user.setRole("ROLE_VENDOR");
+                user.setStatus(Status.valueOf("PENDING"));
+            } else if ("ROLE_ARTIST".equals(userRequestPojo.getRole())) {
+                user.setRole("ROLE_ARTIST");
+                user.setStatus(Status.valueOf("PENDING"));
+            }
+            else {
+                user.setRole("ROLE_USER");
+                user.setStatus(Status.valueOf("APPROVED"));
+            }
         }
         if (!Objects.equals(userRequestPojo.getPassword(), userRequestPojo.getConfirmPassword())) {
             throw new AppException(customMessageSource.get(StringConstants.INVALID_PASSWORD));
@@ -74,14 +82,8 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userRequestPojo.getEmail());
         user.setPassword(passwordEncoder.encode(userRequestPojo.getPassword()));
         user.setMobileNumber(userRequestPojo.getMobileNumber());
-        if ("ROLE_VENDOR".equals(userRequestPojo.getRole())) {
-            user.setRole("ROLE_VENDOR");
-        } else if ("ROLE_ARTIST".equals(userRequestPojo.getRole())) {
-            user.setRole("ROLE_ARTIST");
-        }
-        else {
-            user.setRole("ROLE_USER");
-        }
+        user.setStatus(Status.valueOf(userRequestPojo.getStatus()));
+
         user.setDisplayPicturePath(fileService.uploadAttachment(userRequestPojo.getDisplayPicture()));
         if ("ROLE_VENDOR".equals(userRequestPojo.getRole())) {
 
@@ -100,8 +102,6 @@ public class UserServiceImpl implements UserService {
             vendorDetails.setCitizenshipBackImagePath(fileService.uploadAttachment(userRequestPojo.getCitizenshipBackImage()));
 
             vendorDetails.setPancardPath(fileService.uploadAttachment(userRequestPojo.getPanCardImage()));
-
-            vendorDetails.setStatus(Status.valueOf(userRequestPojo.getStatus()));
 
             user.setVendorDetails(vendorDetails);
         }
@@ -169,7 +169,7 @@ public class UserServiceImpl implements UserService {
         userDetailsPojo.setCitizenshipFrontImagePath(extractFileName(user.getVendorDetails().getCitizenshipFrontImagePath()));
         userDetailsPojo.setCitizenshipBackImagePath(extractFileName(user.getVendorDetails().getCitizenshipBackImagePath()));
         userDetailsPojo.setPancardPath(extractFileName(user.getVendorDetails().getPancardPath()));
-        userDetailsPojo.setStatus(String.valueOf(user.getVendorDetails().getStatus()));
+        userDetailsPojo.setStatus(String.valueOf(user.getStatus()));
     }
     return userDetailsPojo;
     }
@@ -178,5 +178,55 @@ public class UserServiceImpl implements UserService {
             return null;
         }
         return Paths.get(fullPath).getFileName().toString();
+    }
+
+    @Override
+    public List<UserDetailsPojo> getAll(String role, Status status) {
+
+        List<User> users;
+        users = userRepository.findByRoleAndStatus(role, status);
+
+        return users.stream()
+                .map(this::map)
+                .toList();
+    }
+    private UserDetailsPojo map(User user) {
+
+        UserDetailsPojo response = new UserDetailsPojo();
+
+        response.setId(user.getId());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+        response.setMobileNumber(user.getMobileNumber());
+        response.setRole(user.getRole());
+        response.setStatus(user.getStatus().name());
+        response.setDisplayPicture(
+                fileService.extractFileName(user.getDisplayPicturePath())
+        );
+
+        if (user.getVendorDetails() != null) {
+
+            response.setBusinessName(user.getVendorDetails().getBusinessName());
+            response.setProvince(user.getVendorDetails().getProvince());
+            response.setDistrict(user.getVendorDetails().getDistrict());
+            response.setAddress(user.getVendorDetails().getAddress());
+
+            response.setCitizenshipFrontImagePath(
+                    fileService.extractFileName(user.getVendorDetails().getCitizenshipFrontImagePath())
+            );
+
+            response.setCitizenshipBackImagePath(
+                    fileService.extractFileName(user.getVendorDetails().getCitizenshipBackImagePath())
+            );
+
+            response.setPancardPath(
+                    fileService.extractFileName(user.getVendorDetails().getPancardPath())
+            );
+
+
+        }
+
+        return response;
     }
 }
