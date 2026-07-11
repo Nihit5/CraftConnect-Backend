@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @EntityGraph(attributePaths = {"user", "category"})
-    Page<Product> findAll(Pageable pageable);
+    List<Product> findAll();
 
     @Query(value = """
     SELECT

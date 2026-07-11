@@ -12,7 +12,7 @@ import java.util.List;
 @Service
 public interface ProductService {
     ProductResponsePojo saveOrUpdate(ProductRequestPojo productRequestPojo);
-    PaginationResponsePojo<ProductResponsePojo> getAll(Integer start, Integer length);
+    List<ProductResponsePojo> getAll();
     ProductResponsePojo getById(Long id);
     void delete(Long id);
     List<ProductPojo> getProductByCategory(Long categoryId);

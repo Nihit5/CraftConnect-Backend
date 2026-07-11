@@ -132,26 +132,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public PaginationResponsePojo<ProductResponsePojo> getAll(Integer start, Integer length) {
+    public List<ProductResponsePojo> getAll() {
+        List<Product> products = productRepository.findAll();
 
-        Pageable pageable = PaginationUtil.getPageable(start, length);
+        return products.stream()
+                .map(this::map)
+                .toList();
 
-        Page<Product> page = productRepository.findAll(pageable);
-
-        PaginationResponsePojo<ProductResponsePojo> response = new PaginationResponsePojo<>();
-
-        response.setContent(
-                page.getContent()
-                        .stream()
-                        .map(this::map)
-                        .toList()
-        );
-
-        response.setTotalElements(page.getTotalElements());
-        response.setTotalPages(page.getTotalPages());
-        response.setCurrentPage(page.getNumber());
-        response.setPageSize(page.getSize());
-        return response;
     }
 
     @Override
