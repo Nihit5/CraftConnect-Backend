@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userRequestPojo.getEmail());
         user.setPassword(passwordEncoder.encode(userRequestPojo.getPassword()));
         user.setMobileNumber(userRequestPojo.getMobileNumber());
-        user.setStatus(Status.valueOf(userRequestPojo.getStatus()));
+//        user.setStatus(Status.valueOf(userRequestPojo.getStatus()));
 
         user.setDisplayPicturePath(fileService.uploadAttachment(userRequestPojo.getDisplayPicture()));
         if ("ROLE_VENDOR".equals(userRequestPojo.getRole())) {
