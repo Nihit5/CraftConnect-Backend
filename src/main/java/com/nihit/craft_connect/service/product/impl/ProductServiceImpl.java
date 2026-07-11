@@ -142,6 +142,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<ProductResponsePojo> getProductsByUserId(Long userId) {
+        return productRepository.findProductsByUserId(userId);
+
+
+    }
+
+    @Override
     public List<ProductPojo> getProductByCategory(Long categoryId) {
         List<Product> products = productRepository.findByCategory_Id(categoryId);
 

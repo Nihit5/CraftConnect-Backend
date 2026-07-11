@@ -18,4 +18,5 @@ public interface ProductService {
     List<ProductPojo> getProductByCategory(Long categoryId);
     List<ProductPojo> getFeaturedProducts();
     void setFeaturedProduct(Long productId);
+    List<ProductResponsePojo> getProductsByUserId(Long userId);
 }

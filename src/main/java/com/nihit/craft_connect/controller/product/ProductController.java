@@ -35,6 +35,13 @@ public class ProductController extends BaseController {
                 productService.getAll()));
     }
 
+    @GetMapping("/list/user/{userId}")
+    public ResponseEntity<GlobalApiResponse> getProductsByUserId(@PathVariable Long userId) {
+
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE, "Product"),
+                productService.getProductsByUserId(userId)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<GlobalApiResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE, "Product"),
