@@ -1,5 +1,6 @@
 package com.nihit.craft_connect.repository;
 
+import com.nihit.craft_connect.dto.product.ProductPojo;
 import com.nihit.craft_connect.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +17,19 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @EntityGraph(attributePaths = {"user", "category"})
     Page<Product> findAll(Pageable pageable);
 
+    @Query(value = """
+    SELECT
+        id,
+        name,
+        description,
+        image_path AS imagePath,
+        price,
+        quantity
+    FROM product
+    WHERE featured = true
+    """, nativeQuery = true)
+    List<ProductPojo> getAllFeaturedProducts();
+
     @Query("""
     SELECT p
     FROM Product p
@@ -24,4 +38,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     WHERE p.id = :id
     """)
     Optional<Product> findByIdWithUserAndCategory(Long id);
+
+    List<Product> findByCategory_Id(Long categoryId);
 }

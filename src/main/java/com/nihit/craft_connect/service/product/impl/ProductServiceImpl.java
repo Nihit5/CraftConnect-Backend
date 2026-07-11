@@ -4,6 +4,7 @@ import com.nihit.craft_connect.config.CustomMessageSource;
 import com.nihit.craft_connect.config.UserDetailConfig;
 import com.nihit.craft_connect.constants.StringConstants;
 import com.nihit.craft_connect.dto.PaginationResponsePojo;
+import com.nihit.craft_connect.dto.product.ProductPojo;
 import com.nihit.craft_connect.dto.product.ProductRequestPojo;
 import com.nihit.craft_connect.dto.product.ProductResponsePojo;
 import com.nihit.craft_connect.entity.Category;
@@ -154,6 +155,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<ProductPojo> getProductByCategory(Long categoryId) {
+        List<Product> products = productRepository.findByCategory_Id(categoryId);
+
+        return products.stream()
+                .map(this::mapToPojo)
+                .toList();
+    }
+
+    @Override
     public ProductResponsePojo getById(Long id) {
 
         Product product = productRepository.findByIdWithUserAndCategory(id)
@@ -178,6 +188,23 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
     }
 
+    @Override
+    public List<ProductPojo> getFeaturedProducts() {
+        return productRepository.getAllFeaturedProducts();
+
+    }
+
+    public void setFeaturedProduct(Long productId) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new AppException(
+                customMessageSource.get(
+                        StringConstants.NOT_FOUND,
+                        StringConstants.PRODUCT
+                )
+        ));
+        product.setFeatured(!Boolean.TRUE.equals(product.getFeatured()));
+        productRepository.save(product);
+    }
+
     private ProductResponsePojo map(Product product) {
         ProductResponsePojo response = new ProductResponsePojo();
 
@@ -195,6 +222,18 @@ public class ProductServiceImpl implements ProductService {
 
         response.setCategoryId(product.getCategory().getId());
         response.setCategoryName(product.getCategory().getName());
+
+        return response;
+    }
+
+    private ProductPojo mapToPojo(Product product) {
+        ProductPojo response = new ProductPojo();
+
+        response.setId(product.getId());
+        response.setName(product.getName());
+        response.setDescription(product.getDescription());
+        response.setPrice(product.getPrice());
+        response.setQuantity(product.getQuantity());
 
         return response;
     }

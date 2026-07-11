@@ -1,6 +1,7 @@
 package com.nihit.craft_connect.service.product;
 
 import com.nihit.craft_connect.dto.PaginationResponsePojo;
+import com.nihit.craft_connect.dto.product.ProductPojo;
 import com.nihit.craft_connect.dto.product.ProductRequestPojo;
 import com.nihit.craft_connect.dto.product.ProductResponsePojo;
 import org.springframework.data.domain.Page;
@@ -14,4 +15,7 @@ public interface ProductService {
     PaginationResponsePojo<ProductResponsePojo> getAll(Integer start, Integer length);
     ProductResponsePojo getById(Long id);
     void delete(Long id);
+    List<ProductPojo> getProductByCategory(Long categoryId);
+    List<ProductPojo> getFeaturedProducts();
+    void setFeaturedProduct(Long productId);
 }

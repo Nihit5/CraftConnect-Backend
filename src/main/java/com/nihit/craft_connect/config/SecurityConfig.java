@@ -52,7 +52,11 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
     private static final String[] UN_SECURED_URLs = {
             "/api/v1/user/register",
             "/api/v1/user/login",
-            "/api/v1/location/**"
+            "/api/v1/location/**",
+            "/api/v1/product/list",
+            "/api/v1/product/{id}",
+            "/api/v1/product/list/category/{categoryId}",
+            "/api/v1/product/list/featured-product"
     };
 
 

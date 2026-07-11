@@ -48,4 +48,24 @@ public class ProductController extends BaseController {
         productService.delete(id);
         return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_DELETE, "Product")));
     }
+
+    @GetMapping("/list/category/{categoryId}")
+    public ResponseEntity<GlobalApiResponse> getAll(@PathVariable Long categoryId) {
+
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE, "Product"),
+                productService.getProductByCategory(categoryId)));
+    }
+
+    @GetMapping("/list/featured-product")
+    public ResponseEntity<GlobalApiResponse> getFeaturedProducts() {
+
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE, "Product"),
+                productService.getFeaturedProducts()));
+    }
+
+    @PutMapping("/feature/{productId}")
+    public ResponseEntity<GlobalApiResponse> setFeatureProduct(@PathVariable Long productId) {
+        productService.setFeaturedProduct(productId);
+        return ResponseEntity.ok(successResponse(customMessageSource.get(SuccessConstants.SUCCESS_UPDATE, "Product")));
+    }
 }
