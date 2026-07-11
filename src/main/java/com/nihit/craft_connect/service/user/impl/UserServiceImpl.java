@@ -122,7 +122,22 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() ->
                         new AppException("User not found")
                 );
+        switch (user.getStatus()) {
+            case PENDING:
+                throw new AppException("Your account is pending approval. Please wait for an administrator to approve your account.");
 
+            case REJECTED:
+                throw new AppException("Your account has been rejected. Please contact the administrator for more information.");
+
+            case SUSPENDED:
+                throw new AppException("Your account has been suspended. Please contact the administrator for assistance.");
+
+            case APPROVED:
+                break;
+
+            default:
+                throw new AppException("Your account is not authorized to log in. Please contact the administrator.");
+        }
         try {
 
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
