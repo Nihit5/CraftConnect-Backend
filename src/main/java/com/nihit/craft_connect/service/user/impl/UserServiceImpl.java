@@ -11,11 +11,13 @@ import com.nihit.craft_connect.dto.login.LoginResponse;
 import com.nihit.craft_connect.dto.user.UserDetailsPojo;
 import com.nihit.craft_connect.dto.user.UserRequestPojo;
 import com.nihit.craft_connect.dto.user.UserResponsePojo;
+import com.nihit.craft_connect.entity.Cart;
 import com.nihit.craft_connect.entity.User;
 import com.nihit.craft_connect.entity.VendorDetails;
 import com.nihit.craft_connect.enums.Status;
 import com.nihit.craft_connect.exception.AppException;
 import com.nihit.craft_connect.exception.InvalidCredentialsException;
+import com.nihit.craft_connect.repository.CartRepository;
 import com.nihit.craft_connect.repository.UserRepository;
 import com.nihit.craft_connect.service.file.FileService;
 import com.nihit.craft_connect.service.user.UserService;
@@ -44,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final AuthenticationManager authenticationManager;
     private static final String FILE_LOCATION = "users";
     private final UserDetailConfig userDetailConfig;
+    private final CartRepository cartRepository;
 
     @Override
     public UserResponsePojo saveOrUpdate(UserRequestPojo userRequestPojo) {
@@ -106,6 +109,12 @@ public class UserServiceImpl implements UserService {
             user.setVendorDetails(vendorDetails);
         }
         userRepository.save(user);
+        if (user.getRole().equals("ROLE_USER")){
+            Cart cart = new Cart();
+            cart.setUser(user);
+
+            cartRepository.save(cart);
+        }
         UserResponsePojo userResponsePojo = new UserResponsePojo();
         userResponsePojo.setId(user.getId());
         userResponsePojo.setFirstName(user.getFirstName());
