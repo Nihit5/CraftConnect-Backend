@@ -63,5 +63,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     """)
     Optional<Product> findByIdWithUserAndCategory(Long id);
 
+    @EntityGraph(attributePaths = {"user", "category"})
     List<Product> findByCategory_Id(Long categoryId);
+
+    @EntityGraph(attributePaths = {"user", "category"})
+    List<Product> findByFeaturedTrue();
 }

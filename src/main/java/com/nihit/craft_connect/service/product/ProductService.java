@@ -15,8 +15,8 @@ public interface ProductService {
     List<ProductResponsePojo> getAll();
     ProductResponsePojo getById(Long id);
     void delete(Long id);
-    List<ProductPojo> getProductByCategory(Long categoryId);
-    List<ProductPojo> getFeaturedProducts();
+    List<ProductResponsePojo> getProductByCategory(Long categoryId);
+    List<ProductResponsePojo> getFeaturedProducts();
     void setFeaturedProduct(Long productId);
     List<ProductResponsePojo> getProductsByUserId(Long userId);
 }

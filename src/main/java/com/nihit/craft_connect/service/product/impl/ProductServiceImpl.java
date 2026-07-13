@@ -149,11 +149,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductPojo> getProductByCategory(Long categoryId) {
+    public List<ProductResponsePojo> getProductByCategory(Long categoryId) {
         List<Product> products = productRepository.findByCategory_Id(categoryId);
 
         return products.stream()
-                .map(this::mapToPojo)
+                .map(this::map)
                 .toList();
     }
 
@@ -183,9 +183,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductPojo> getFeaturedProducts() {
-        return productRepository.getAllFeaturedProducts();
-
+    public List<ProductResponsePojo> getFeaturedProducts() {
+        List<Product> products = productRepository.findByFeaturedTrue();
+        return products.stream()
+                .map(this::map)
+                .toList();
     }
 
     public void setFeaturedProduct(Long productId) {
