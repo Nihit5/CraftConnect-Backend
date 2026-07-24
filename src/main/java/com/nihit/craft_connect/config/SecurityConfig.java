@@ -57,7 +57,8 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
             "/api/v1/product/{id}",
             "/api/v1/product/list/category/{categoryId}",
             "/api/v1/product/list/featured-product",
-            "/api/v1/file/**"
+            "/api/v1/file/**",
+            "/api/v1/payment/**"
     };
 
 

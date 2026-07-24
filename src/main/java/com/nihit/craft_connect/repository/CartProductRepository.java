@@ -12,4 +12,7 @@ public interface CartProductRepository extends JpaRepository<CartProduct, Long> 
     Optional<CartProduct> findByCartIdAndProductId(Long cartId, Long productId);
 
     List<CartProduct> findByCartId(Long cartId);
+
+    // new: fetch only the rows the user selected, and only if they belong to this cart
+    List<CartProduct> findByCartIdAndIdIn(Long cartId, List<Long> cartProductIds);
 }
