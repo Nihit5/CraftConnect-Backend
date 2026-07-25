@@ -11,6 +11,7 @@ import com.nihit.craft_connect.enums.PaymentMethod;
 import com.nihit.craft_connect.enums.PaymentStatus;
 import com.nihit.craft_connect.exception.AppException;
 import com.nihit.craft_connect.repository.OrderProductRepository;
+import com.nihit.craft_connect.repository.OrderRepository;
 import com.nihit.craft_connect.repository.PaymentRepository;
 import com.nihit.craft_connect.repository.ProductRepository;
 import com.nihit.craft_connect.service.file.FileService;
@@ -34,6 +35,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
     private final PaymentRepository paymentRepository;
     private final UserDetailConfig userDetailConfig;
     private final FileService fileService;
+    private final OrderRepository orderRepository;
 
     private static final Set<OrderStatus> VENDOR_SETTABLE_STATUSES =
             Set.of(OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.CANCELLED);
@@ -90,6 +92,9 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             orderProduct.setItemStatus(newStatus);
             orderProductRepository.save(orderProduct);
         }
+
+        // NEW — recalculate order-level status after ANY item status change, not just cancellation
+        recalculateOrderStatus(orderProduct.getOrder());
     }
 
     private void cancelItem(OrderProduct orderProduct, String cancellationReason) {
@@ -106,12 +111,8 @@ public class VendorOrderServiceImpl implements VendorOrderService {
 
         // 2. money handling — depends on how the item was paid for
         if (order.getPaymentMethod() == PaymentMethod.CASH_ON_DELIVERY) {
-            // no money was ever collected — nothing to refund
             log.info("Item {} cancelled (COD, no refund needed)", orderProduct.getId());
         } else if (payment != null && payment.getStatus() == PaymentStatus.SUCCESS) {
-            // real money was collected via Khalti/eSewa — neither exposes a public refund API,
-            // so this MUST be actioned manually through the merchant dashboard. We only record
-            // that a refund is owed; we never claim it's been processed.
             double owed = orderProduct.getSubTotal();
             payment.setStatus(PaymentStatus.REFUND_PENDING);
             payment.setRefundAmount(
@@ -128,17 +129,51 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             log.warn("Refund owed for order {}: Rs. {} — process manually via {} merchant panel",
                     order.getId(), owed, order.getPaymentMethod());
         }
+        // order-level recalculation now happens once, centrally, in recalculateOrderStatus —
+        // removed the duplicate "allCancelled" check that used to live here
+    }
 
-        // 3. recalc order-level status if every item ended up cancelled
-        boolean allCancelled = order.getOrderProducts().stream()
-                .allMatch(op -> op.getItemStatus() == OrderStatus.CANCELLED);
-        if (allCancelled) {
-            order.setStatus(OrderStatus.CANCELLED);
+    // NEW — single source of truth for deriving Order.status from all its OrderProduct.itemStatus values
+    private void recalculateOrderStatus(Order order) {
+        List<OrderStatus> itemStatuses = order.getOrderProducts().stream()
+                .map(OrderProduct::getItemStatus)
+                .toList();
+
+        // don't touch orders still awaiting payment or that failed payment —
+        // those are controlled by the payment flow, not by vendor actions
+        if (order.getStatus() == OrderStatus.PENDING || order.getStatus() == OrderStatus.PAYMENT_FAILED) {
+            return;
+        }
+
+        boolean allDelivered = itemStatuses.stream().allMatch(s -> s == OrderStatus.DELIVERED);
+        boolean allCancelled = itemStatuses.stream().allMatch(s -> s == OrderStatus.CANCELLED);
+        boolean anyShipped = itemStatuses.stream().anyMatch(s -> s == OrderStatus.SHIPPED);
+        boolean anyProcessing = itemStatuses.stream().anyMatch(s -> s == OrderStatus.PROCESSING);
+
+        OrderStatus newOrderStatus;
+        if (allDelivered) {
+            newOrderStatus = OrderStatus.DELIVERED;
+        } else if (allCancelled) {
+            newOrderStatus = OrderStatus.CANCELLED;
+        } else if (anyShipped) {
+            newOrderStatus = OrderStatus.SHIPPED;
+        } else if (anyProcessing) {
+            newOrderStatus = OrderStatus.PROCESSING;
+        } else {
+            newOrderStatus = OrderStatus.CONFIRMED; // mixed CONFIRMED/CANCELLED items, none shipped/processing yet
+        }
+
+        if (order.getStatus() != newOrderStatus) {
+            order.setStatus(newOrderStatus);
             order.setModifiedDate(new Timestamp(System.currentTimeMillis()));
+            orderRepository.save(order);
         }
     }
 
     private boolean isForwardMove(OrderStatus current, OrderStatus next) {
+        if (current == null || next == null) {
+            return false;
+        }
         int currentIdx = FORWARD_SEQUENCE.indexOf(current);
         int nextIdx = FORWARD_SEQUENCE.indexOf(next);
         return currentIdx != -1 && nextIdx != -1 && nextIdx > currentIdx;

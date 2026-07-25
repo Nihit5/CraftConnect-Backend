@@ -174,7 +174,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new AppException(
                         customMessageSource.get(StringConstants.NOT_FOUND, "Order")));
 
-        if (order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
+        if (order.getStatus() == OrderStatus.CONFIRMED || order.getStatus() == OrderStatus.SHIPPED || order.getStatus() == OrderStatus.DELIVERED) {
             throw new AppException("Order cannot be cancelled at this stage.");
         }
 
