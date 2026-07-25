@@ -214,6 +214,18 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public VendorOrderItemPojo getMyOrderItemDetail(Long orderProductId) {
+        Long vendorId = userDetailConfig.getLoggedInUserId();
+
+        OrderProduct orderProduct = orderProductRepository
+                .findByIdAndProduct_User_Id(orderProductId, vendorId)
+                .orElseThrow(() -> new AppException("Order item not found or does not belong to you."));
+
+        return mapToResponse(orderProduct);
+    }
+
     private VendorPaymentDetailPojo mapToPaymentDetail(OrderProduct op) {
         Order order = op.getOrder();
         Payment payment = order.getPayment();

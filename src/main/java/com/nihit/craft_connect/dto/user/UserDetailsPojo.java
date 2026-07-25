@@ -26,4 +26,9 @@ public class UserDetailsPojo {
     private String citizenshipBackImagePath;
     private String pancardPath;
     private String status;
+    private String artSpecialization;
+    private String bio;
+    private Double latitude;
+    private Double longitude;
+    private String portfolioImagePath;
 }

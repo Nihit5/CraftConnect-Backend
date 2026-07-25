@@ -17,4 +17,5 @@ public class UserResponsePojo {
     private String email;
     private String mobileNumber;
     private String role;
+    private ArtistDetailsResponsePojo artistDetails;
 }

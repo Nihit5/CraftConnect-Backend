@@ -43,4 +43,7 @@ public class User {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "vendor_details_id")
     private VendorDetails vendorDetails;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "artist_details_id")
+    private ArtistDetails artistDetails;
 }

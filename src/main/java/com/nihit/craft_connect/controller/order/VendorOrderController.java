@@ -52,4 +52,14 @@ public class VendorOrderController extends BaseController {
                 )
         );
     }
+
+    @GetMapping("/item/{orderProductId}")
+    public ResponseEntity<GlobalApiResponse> getMyOrderItemDetail(@PathVariable Long orderProductId) {
+        return ResponseEntity.ok(
+                successResponse(
+                        customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE, "Order item"),
+                        vendorOrderService.getMyOrderItemDetail(orderProductId)
+                )
+        );
+    }
 }

@@ -13,4 +13,5 @@ public interface VendorOrderService {
     List<VendorOrderItemPojo> getMyOrderItemsByProduct(Long productId);
     void updateItemStatus(Long orderProductId, OrderStatus newStatus, String cancellationReason);
     List<VendorPaymentDetailPojo> getMyPaymentDetails();
+    VendorOrderItemPojo getMyOrderItemDetail(Long orderProductId);
 }

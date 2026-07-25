@@ -47,4 +47,15 @@ public class UserRequestPojo {
     private MultipartFile citizenshipBackImage;
     private MultipartFile panCardImage;
     private String status;
+
+    private String artSpecialization;
+    private String bio;
+    private String artistProvince;
+    private String artistDistrict;
+    private String artistAddress;
+    private Double latitude;
+    private Double longitude;
+    private MultipartFile artistCitizenshipFrontImage;
+    private MultipartFile artistCitizenshipBackImage;
+    private MultipartFile portfolioImage;
 }

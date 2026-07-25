@@ -8,9 +8,11 @@ import com.nihit.craft_connect.constants.MessageConstant;
 import com.nihit.craft_connect.constants.StringConstants;
 import com.nihit.craft_connect.dto.login.LoginRequest;
 import com.nihit.craft_connect.dto.login.LoginResponse;
+import com.nihit.craft_connect.dto.user.ArtistDetailsResponsePojo;
 import com.nihit.craft_connect.dto.user.UserDetailsPojo;
 import com.nihit.craft_connect.dto.user.UserRequestPojo;
 import com.nihit.craft_connect.dto.user.UserResponsePojo;
+import com.nihit.craft_connect.entity.ArtistDetails;
 import com.nihit.craft_connect.entity.Cart;
 import com.nihit.craft_connect.entity.User;
 import com.nihit.craft_connect.entity.VendorDetails;
@@ -56,8 +58,7 @@ public class UserServiceImpl implements UserService {
                     customMessageSource.get(ErrorConstants.ERROR_ALREADY_EXIST,
                             customMessageSource.get(StringConstants.USER))
             ));
-        }
-        else {
+        } else {
             user = new User();
             if (userRepository.existsByEmail(userRequestPojo.getEmail())) {
                 throw new AppException("Email already exists");
@@ -71,50 +72,72 @@ public class UserServiceImpl implements UserService {
             } else if ("ROLE_ARTIST".equals(userRequestPojo.getRole())) {
                 user.setRole("ROLE_ARTIST");
                 user.setStatus(Status.valueOf("PENDING"));
-            }
-            else {
+            } else {
                 user.setRole("ROLE_USER");
                 user.setStatus(Status.valueOf("APPROVED"));
             }
         }
+
         if (!Objects.equals(userRequestPojo.getPassword(), userRequestPojo.getConfirmPassword())) {
             throw new AppException(customMessageSource.get(StringConstants.INVALID_PASSWORD));
         }
+
         user.setFirstName(userRequestPojo.getFirstName());
         user.setLastName(userRequestPojo.getLastName());
         user.setEmail(userRequestPojo.getEmail());
         user.setPassword(passwordEncoder.encode(userRequestPojo.getPassword()));
         user.setMobileNumber(userRequestPojo.getMobileNumber());
-//        user.setStatus(Status.valueOf(userRequestPojo.getStatus()));
-
         user.setDisplayPicturePath(fileService.uploadAttachment(userRequestPojo.getDisplayPicture()));
+
         if ("ROLE_VENDOR".equals(userRequestPojo.getRole())) {
-
             VendorDetails vendorDetails = new VendorDetails();
-
             vendorDetails.setBusinessName(userRequestPojo.getBusinessName());
-
             vendorDetails.setProvince(userRequestPojo.getProvince());
-
             vendorDetails.setDistrict(userRequestPojo.getDistrict());
-
             vendorDetails.setAddress(userRequestPojo.getAddress());
-
             vendorDetails.setCitizenshipFrontImagePath(fileService.uploadAttachment(userRequestPojo.getCitizenshipFrontImage()));
-
             vendorDetails.setCitizenshipBackImagePath(fileService.uploadAttachment(userRequestPojo.getCitizenshipBackImage()));
-
             vendorDetails.setPancardPath(fileService.uploadAttachment(userRequestPojo.getPanCardImage()));
-
             user.setVendorDetails(vendorDetails);
         }
+
+        if ("ROLE_ARTIST".equals(userRequestPojo.getRole())) {
+            ArtistDetails artistDetails = new ArtistDetails();
+            artistDetails.setArtSpecialization(userRequestPojo.getArtSpecialization());
+            artistDetails.setBio(userRequestPojo.getBio());
+            artistDetails.setProvince(userRequestPojo.getArtistProvince());
+            artistDetails.setDistrict(userRequestPojo.getArtistDistrict());
+            artistDetails.setAddress(userRequestPojo.getArtistAddress());
+            artistDetails.setLatitude(userRequestPojo.getLatitude());
+            artistDetails.setLongitude(userRequestPojo.getLongitude());
+
+            if (userRequestPojo.getArtistCitizenshipFrontImage() != null
+                    && !userRequestPojo.getArtistCitizenshipFrontImage().isEmpty()) {
+                artistDetails.setCitizenshipFrontImagePath(
+                        fileService.uploadAttachment(userRequestPojo.getArtistCitizenshipFrontImage()));
+            }
+            if (userRequestPojo.getArtistCitizenshipBackImage() != null
+                    && !userRequestPojo.getArtistCitizenshipBackImage().isEmpty()) {
+                artistDetails.setCitizenshipBackImagePath(
+                        fileService.uploadAttachment(userRequestPojo.getArtistCitizenshipBackImage()));
+            }
+            if (userRequestPojo.getPortfolioImage() != null
+                    && !userRequestPojo.getPortfolioImage().isEmpty()) {
+                artistDetails.setPortfolioImagePath(
+                        fileService.uploadAttachment(userRequestPojo.getPortfolioImage()));
+            }
+
+            user.setArtistDetails(artistDetails);
+        }
+
         userRepository.save(user);
-        if (user.getRole().equals("ROLE_USER")){
+
+        if (user.getRole().equals("ROLE_USER")) {
             Cart cart = new Cart();
             cart.setUser(user);
-
             cartRepository.save(cart);
         }
+
         UserResponsePojo userResponsePojo = new UserResponsePojo();
         userResponsePojo.setId(user.getId());
         userResponsePojo.setFirstName(user.getFirstName());
@@ -122,6 +145,20 @@ public class UserServiceImpl implements UserService {
         userResponsePojo.setEmail(user.getEmail());
         userResponsePojo.setMobileNumber(user.getMobileNumber());
         userResponsePojo.setRole(user.getRole());
+
+        if (user.getArtistDetails() != null) {
+            ArtistDetailsResponsePojo artistPojo = new ArtistDetailsResponsePojo();
+            artistPojo.setArtSpecialization(user.getArtistDetails().getArtSpecialization());
+            artistPojo.setBio(user.getArtistDetails().getBio());
+            artistPojo.setProvince(user.getArtistDetails().getProvince());
+            artistPojo.setDistrict(user.getArtistDetails().getDistrict());
+            artistPojo.setAddress(user.getArtistDetails().getAddress());
+            artistPojo.setLatitude(user.getArtistDetails().getLatitude());
+            artistPojo.setLongitude(user.getArtistDetails().getLongitude());
+            artistPojo.setPortfolioImagePath(fileService.extractFileName(user.getArtistDetails().getPortfolioImagePath()));
+            userResponsePojo.setArtistDetails(artistPojo);
+        }
+
         return userResponsePojo;
     }
 
@@ -174,28 +211,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetailsPojo getUserDetails(){
-    User user = userRepository.findById(userDetailConfig.getLoggedInUserId())
-            .orElseThrow(() -> new AppException("User not found"));
-    UserDetailsPojo userDetailsPojo = new UserDetailsPojo();
-    userDetailsPojo.setId(user.getId());
-    userDetailsPojo.setFirstName(user.getFirstName());
-    userDetailsPojo.setLastName(user.getLastName());
-    userDetailsPojo.setEmail(user.getEmail());
-    userDetailsPojo.setMobileNumber(user.getMobileNumber());
-    userDetailsPojo.setDisplayPicture(extractFileName(user.getDisplayPicturePath()));
-    userDetailsPojo.setRole(user.getRole());
-    if (user.getRole().equals("ROLE_VENDOR")) {
-        userDetailsPojo.setBusinessName(user.getVendorDetails().getBusinessName());
-        userDetailsPojo.setProvince(user.getVendorDetails().getProvince());
-        userDetailsPojo.setDistrict(user.getVendorDetails().getDistrict());
-        userDetailsPojo.setAddress(user.getVendorDetails().getAddress());
-        userDetailsPojo.setCitizenshipFrontImagePath(extractFileName(user.getVendorDetails().getCitizenshipFrontImagePath()));
-        userDetailsPojo.setCitizenshipBackImagePath(extractFileName(user.getVendorDetails().getCitizenshipBackImagePath()));
-        userDetailsPojo.setPancardPath(extractFileName(user.getVendorDetails().getPancardPath()));
-        userDetailsPojo.setStatus(String.valueOf(user.getStatus()));
-    }
-    return userDetailsPojo;
+    public UserDetailsPojo getUserDetails() {
+        User user = userRepository.findById(userDetailConfig.getLoggedInUserId())
+                .orElseThrow(() -> new AppException("User not found"));
+
+        UserDetailsPojo userDetailsPojo = new UserDetailsPojo();
+        userDetailsPojo.setId(user.getId());
+        userDetailsPojo.setFirstName(user.getFirstName());
+        userDetailsPojo.setLastName(user.getLastName());
+        userDetailsPojo.setEmail(user.getEmail());
+        userDetailsPojo.setMobileNumber(user.getMobileNumber());
+        userDetailsPojo.setDisplayPicture(extractFileName(user.getDisplayPicturePath()));
+        userDetailsPojo.setRole(user.getRole());
+
+        if (user.getRole().equals("ROLE_VENDOR")) {
+            userDetailsPojo.setBusinessName(user.getVendorDetails().getBusinessName());
+            userDetailsPojo.setProvince(user.getVendorDetails().getProvince());
+            userDetailsPojo.setDistrict(user.getVendorDetails().getDistrict());
+            userDetailsPojo.setAddress(user.getVendorDetails().getAddress());
+            userDetailsPojo.setCitizenshipFrontImagePath(extractFileName(user.getVendorDetails().getCitizenshipFrontImagePath()));
+            userDetailsPojo.setCitizenshipBackImagePath(extractFileName(user.getVendorDetails().getCitizenshipBackImagePath()));
+            userDetailsPojo.setPancardPath(extractFileName(user.getVendorDetails().getPancardPath()));
+            userDetailsPojo.setStatus(String.valueOf(user.getStatus()));
+        }
+
+        if (user.getRole().equals("ROLE_ARTIST")) {
+            userDetailsPojo.setArtSpecialization(user.getArtistDetails().getArtSpecialization());
+            userDetailsPojo.setBio(user.getArtistDetails().getBio());
+            userDetailsPojo.setProvince(user.getArtistDetails().getProvince());
+            userDetailsPojo.setDistrict(user.getArtistDetails().getDistrict());
+            userDetailsPojo.setAddress(user.getArtistDetails().getAddress());
+            userDetailsPojo.setLatitude(user.getArtistDetails().getLatitude());
+            userDetailsPojo.setLongitude(user.getArtistDetails().getLongitude());
+            userDetailsPojo.setCitizenshipFrontImagePath(extractFileName(user.getArtistDetails().getCitizenshipFrontImagePath()));
+            userDetailsPojo.setCitizenshipBackImagePath(extractFileName(user.getArtistDetails().getCitizenshipBackImagePath()));
+            userDetailsPojo.setPortfolioImagePath(extractFileName(user.getArtistDetails().getPortfolioImagePath()));
+            userDetailsPojo.setStatus(String.valueOf(user.getStatus()));
+        }
+
+        return userDetailsPojo;
     }
     public String extractFileName(String fullPath) {
         if (fullPath == null || fullPath.isBlank()) {
@@ -231,9 +285,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserDetailsPojo map(User user) {
-
         UserDetailsPojo response = new UserDetailsPojo();
-
         response.setId(user.getId());
         response.setFirstName(user.getFirstName());
         response.setLastName(user.getLastName());
@@ -241,30 +293,40 @@ public class UserServiceImpl implements UserService {
         response.setMobileNumber(user.getMobileNumber());
         response.setRole(user.getRole());
         response.setStatus(user.getStatus().name());
-        response.setDisplayPicture(
-                fileService.extractFileName(user.getDisplayPicturePath())
-        );
+        response.setDisplayPicture(fileService.extractFileName(user.getDisplayPicturePath()));
 
         if (user.getVendorDetails() != null) {
-
             response.setBusinessName(user.getVendorDetails().getBusinessName());
             response.setProvince(user.getVendorDetails().getProvince());
             response.setDistrict(user.getVendorDetails().getDistrict());
             response.setAddress(user.getVendorDetails().getAddress());
-
             response.setCitizenshipFrontImagePath(
                     fileService.extractFileName(user.getVendorDetails().getCitizenshipFrontImagePath())
             );
-
             response.setCitizenshipBackImagePath(
                     fileService.extractFileName(user.getVendorDetails().getCitizenshipBackImagePath())
             );
-
             response.setPancardPath(
                     fileService.extractFileName(user.getVendorDetails().getPancardPath())
             );
-
-
+        }
+        if (user.getArtistDetails() != null) {
+            response.setArtSpecialization(user.getArtistDetails().getArtSpecialization());
+            response.setBio(user.getArtistDetails().getBio());
+            response.setProvince(user.getArtistDetails().getProvince());
+            response.setDistrict(user.getArtistDetails().getDistrict());
+            response.setAddress(user.getArtistDetails().getAddress());
+            response.setLatitude(user.getArtistDetails().getLatitude());
+            response.setLongitude(user.getArtistDetails().getLongitude());
+            response.setCitizenshipFrontImagePath(
+                    fileService.extractFileName(user.getArtistDetails().getCitizenshipFrontImagePath())
+            );
+            response.setCitizenshipBackImagePath(
+                    fileService.extractFileName(user.getArtistDetails().getCitizenshipBackImagePath())
+            );
+            response.setPortfolioImagePath(
+                    fileService.extractFileName(user.getArtistDetails().getPortfolioImagePath())
+            );
         }
 
         return response;
