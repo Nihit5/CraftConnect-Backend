@@ -23,8 +23,8 @@ public class PaymentCallbackController {
 
     private final PaymentCallbackService paymentCallbackService;
 
-    private static final String FRONTEND_SUCCESS_URL = "http://localhost:3000/order/success?orderId=";
-    private static final String FRONTEND_FAILURE_URL = "http://localhost:3000/order/failed?orderId=";
+    private static final String FRONTEND_SUCCESS_URL = "http://localhost:5173/my-orders";
+    private static final String FRONTEND_FAILURE_URL = "http://localhost:5173/my-orders";
 
     @GetMapping("/khalti/callback")
     public ResponseEntity<Void> khaltiCallback(
