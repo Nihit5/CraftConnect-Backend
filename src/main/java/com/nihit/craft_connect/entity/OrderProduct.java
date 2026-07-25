@@ -1,5 +1,6 @@
 package com.nihit.craft_connect.entity;
 
+import com.nihit.craft_connect.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,4 +31,8 @@ public class OrderProduct {
 
     @Column(name = "sub_total")
     private Double subTotal;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "item_status")
+    private OrderStatus itemStatus;
 }

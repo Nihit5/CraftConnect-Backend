@@ -82,6 +82,7 @@ public class OrderServiceImpl implements OrderService {
         order.setCreatedBy(userId);
         order.setModifiedBy(userId);
 
+        PaymentMethod method = request.getPaymentMethod();
         List<OrderProduct> orderProducts = new ArrayList<>();
         double totalAmount = 0.0;
 
@@ -105,6 +106,10 @@ public class OrderServiceImpl implements OrderService {
             orderProduct.setSubTotal(subTotal);
             totalAmount += subTotal;
 
+            orderProduct.setItemStatus(
+                    method == PaymentMethod.CASH_ON_DELIVERY ? OrderStatus.CONFIRMED : OrderStatus.PENDING_PAYMENT
+            );
+
             product.setQuantity(product.getQuantity() - cartProduct.getQuantity());
             productRepository.save(product);
 
@@ -114,10 +119,9 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderProducts(orderProducts);
         order.setTotalAmount(totalAmount);
 
-        PaymentMethod method = request.getPaymentMethod();
         Payment payment = new Payment();
         payment.setOrder(order);
-        payment.setMethod(method);
+        payment.setMethod(method);   // reuse the same variable — remove the old duplicate "PaymentMethod method = ..." line further down
         payment.setAmount(totalAmount);
         payment.setMerchantTxnId(UUID.randomUUID().toString());
         payment.setCreatedDate(new Timestamp(System.currentTimeMillis()));

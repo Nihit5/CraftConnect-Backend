@@ -48,4 +48,11 @@ public class Payment {
 
     @Column(name = "modified_date")
     private Timestamp modifiedDate;
+
+    @Column(name = "refund_amount")
+    private Double refundAmount;
+
+    @Column(name = "refund_notes")
+    private String refundNotes;
+
 }

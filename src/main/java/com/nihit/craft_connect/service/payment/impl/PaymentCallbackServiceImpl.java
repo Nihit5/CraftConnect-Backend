@@ -36,12 +36,9 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
     public Long handleKhaltiCallback(String purchaseOrderId, String pidx) {
         Payment payment = paymentRepository.findByMerchantTxnId(purchaseOrderId)
                 .orElseThrow(() -> new AppException("Payment record not found."));
-
-        Order order = payment.getOrder(); // still lazy, but we're inside a transaction now — safe to touch
-
+        Order order = payment.getOrder();
         PaymentGatewayService khaltiService = paymentGatewayServiceFactory.getService(payment.getMethod());
         boolean verified = khaltiService.verifyPayment(payment.getMerchantTxnId(), Map.of("pidx", pidx));
-
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
         if (verified) {
@@ -51,19 +48,18 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
 
             order.setStatus(OrderStatus.CONFIRMED);
             order.setModifiedDate(now);
+            order.getOrderProducts().forEach(op -> op.setItemStatus(OrderStatus.CONFIRMED));
         } else {
             payment.setStatus(PaymentStatus.FAILED);
             payment.setModifiedDate(now);
 
             order.setStatus(OrderStatus.PAYMENT_FAILED);
             order.setModifiedDate(now);
+            order.getOrderProducts().forEach(op -> op.setItemStatus(OrderStatus.PAYMENT_FAILED));
         }
 
-        // both are managed entities in this persistence context — no explicit save() needed,
-        // but calling it doesn't hurt and makes intent obvious
         paymentRepository.save(payment);
         orderRepository.save(order);
-
         return order.getId();
     }
 
@@ -92,18 +88,18 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
             payment.setStatus(PaymentStatus.SUCCESS);
             payment.setGatewayTxnId(callbackData.getTransaction_code());
             order.setStatus(OrderStatus.CONFIRMED);
+            order.getOrderProducts().forEach(op -> op.setItemStatus(OrderStatus.CONFIRMED));
         } else {
             payment.setStatus(PaymentStatus.FAILED);
             order.setStatus(OrderStatus.PAYMENT_FAILED);
+            order.getOrderProducts().forEach(op -> op.setItemStatus(OrderStatus.PAYMENT_FAILED));
+            payment.setModifiedDate(now);
+            order.setModifiedDate(now);
         }
-        payment.setModifiedDate(now);
-        order.setModifiedDate(now);
         paymentRepository.save(payment);
         orderRepository.save(order);
-
-        return order.getId();
+            return order.getId();
     }
-
     @Transactional
     public Long handleEsewaFailure(String rawData) {
         if (rawData == null || rawData.isBlank()) {
@@ -132,13 +128,11 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
 
         payment.setStatus(PaymentStatus.FAILED);
         payment.setModifiedDate(now);
-
         order.setStatus(OrderStatus.PAYMENT_FAILED);
         order.setModifiedDate(now);
-
+        order.getOrderProducts().forEach(op -> op.setItemStatus(OrderStatus.PAYMENT_FAILED));
         paymentRepository.save(payment);
         orderRepository.save(order);
-
         return order.getId();
     }
 }
