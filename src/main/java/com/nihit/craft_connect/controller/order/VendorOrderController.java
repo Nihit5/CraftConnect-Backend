@@ -42,4 +42,14 @@ public class VendorOrderController extends BaseController {
         return ResponseEntity.ok(successResponse(
                 customMessageSource.get(SuccessConstants.SUCCESS_UPDATE, "Delivery status"), null));
     }
+
+    @GetMapping("/payments")
+    public ResponseEntity<GlobalApiResponse> getMyPaymentDetails() {
+        return ResponseEntity.ok(
+                successResponse(
+                        customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE, "Payment details"),
+                        vendorOrderService.getMyPaymentDetails()
+                )
+        );
+    }
 }

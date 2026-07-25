@@ -2,6 +2,7 @@ package com.nihit.craft_connect.service.order.impl;
 
 import com.nihit.craft_connect.config.UserDetailConfig;
 import com.nihit.craft_connect.dto.order.VendorOrderItemPojo;
+import com.nihit.craft_connect.dto.order.VendorPaymentDetailPojo;
 import com.nihit.craft_connect.entity.Order;
 import com.nihit.craft_connect.entity.OrderProduct;
 import com.nihit.craft_connect.entity.Payment;
@@ -200,6 +201,46 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         pojo.setDistrict(order.getDistrict());
         pojo.setShippingAddressLine(order.getShippingAddressLine());
         pojo.setLandmark(order.getLandmark());
+        return pojo;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<VendorPaymentDetailPojo> getMyPaymentDetails() {
+        Long vendorId = userDetailConfig.getLoggedInUserId();
+        return orderProductRepository.findByProduct_User_IdOrderByOrder_CreatedDateDesc(vendorId)
+                .stream()
+                .map(this::mapToPaymentDetail)
+                .toList();
+    }
+
+    private VendorPaymentDetailPojo mapToPaymentDetail(OrderProduct op) {
+        Order order = op.getOrder();
+        Payment payment = order.getPayment();
+
+        VendorPaymentDetailPojo pojo = new VendorPaymentDetailPojo();
+        pojo.setOrderId(order.getId());
+        pojo.setOrderProductId(op.getId());
+
+        pojo.setProductId(op.getProduct().getId());
+        pojo.setProductName(op.getProduct().getName());
+        pojo.setQuantity(op.getQuantity());
+        pojo.setItemSubTotal(op.getSubTotal());
+        pojo.setProductPrice(op.getProduct().getPrice());
+        pojo.setCustomerName(order.getShippingAddress().getRecipientName());
+        pojo.setMobileNumber(order.getShippingAddress().getMobileNumber());
+
+        pojo.setOrderTotalAmount(order.getTotalAmount());
+
+        if (payment != null) {
+            pojo.setPaymentMethod(payment.getMethod());
+            pojo.setPaymentStatus(payment.getStatus());
+            pojo.setPaymentAmount(payment.getAmount());
+            pojo.setPaymentDate(payment.getModifiedDate());
+            pojo.setRefundAmount(payment.getRefundAmount());
+            pojo.setRefundNotes(payment.getRefundNotes());
+        }
+
         return pojo;
     }
 }
