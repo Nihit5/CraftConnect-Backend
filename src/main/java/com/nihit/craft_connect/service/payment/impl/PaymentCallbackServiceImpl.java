@@ -103,7 +103,6 @@ public class PaymentCallbackServiceImpl implements PaymentCallbackService {
     @Transactional
     public Long handleEsewaFailure(String rawData) {
         if (rawData == null || rawData.isBlank()) {
-            // eSewa gave us nothing to identify the transaction — nothing to update
             log.warn("eSewa failure callback received with no data param");
             return null;
         }

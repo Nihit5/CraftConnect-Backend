@@ -1,5 +1,6 @@
 package com.nihit.craft_connect.dto.order;
 
+import com.nihit.craft_connect.enums.OrderStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,4 +13,5 @@ public class OrderProductPojo {
     private Integer quantity;
     private Double priceAtPurchase;
     private Double subTotal;
+    private OrderStatus vendorStatus;
 }

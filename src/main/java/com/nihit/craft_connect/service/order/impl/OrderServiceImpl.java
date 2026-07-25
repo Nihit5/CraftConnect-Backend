@@ -126,14 +126,9 @@ public class OrderServiceImpl implements OrderService {
         payment.setMerchantTxnId(UUID.randomUUID().toString());
         payment.setCreatedDate(new Timestamp(System.currentTimeMillis()));
         payment.setModifiedDate(new Timestamp(System.currentTimeMillis()));
+        order.setStatus(OrderStatus.PENDING);
+        payment.setStatus(PaymentStatus.PENDING);
 
-        if (method == PaymentMethod.CASH_ON_DELIVERY) {
-            order.setStatus(OrderStatus.CONFIRMED);
-            payment.setStatus(PaymentStatus.SUCCESS);
-        } else {
-            order.setStatus(OrderStatus.PENDING);
-            payment.setStatus(PaymentStatus.PENDING);
-        }
 
         order.setPayment(payment);
         Order savedOrder = orderRepository.save(order);
@@ -229,6 +224,7 @@ public class OrderServiceImpl implements OrderService {
             pojo.setQuantity(op.getQuantity());
             pojo.setPriceAtPurchase(op.getPriceAtPurchase());
             pojo.setSubTotal(op.getSubTotal());
+            pojo.setVendorStatus(op.getItemStatus());
             return pojo;
         }).toList();
 
