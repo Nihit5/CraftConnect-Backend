@@ -107,7 +107,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount += subTotal;
 
             orderProduct.setItemStatus(
-                    method == PaymentMethod.CASH_ON_DELIVERY ? OrderStatus.CONFIRMED : OrderStatus.PENDING_PAYMENT
+                    OrderStatus.PENDING
             );
 
             product.setQuantity(product.getQuantity() - cartProduct.getQuantity());
@@ -131,7 +131,7 @@ public class OrderServiceImpl implements OrderService {
             order.setStatus(OrderStatus.CONFIRMED);
             payment.setStatus(PaymentStatus.SUCCESS);
         } else {
-            order.setStatus(OrderStatus.PENDING_PAYMENT);
+            order.setStatus(OrderStatus.PENDING);
             payment.setStatus(PaymentStatus.PENDING);
         }
 

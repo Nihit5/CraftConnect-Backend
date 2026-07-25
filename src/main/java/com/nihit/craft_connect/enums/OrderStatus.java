@@ -1,7 +1,7 @@
 package com.nihit.craft_connect.enums;
 
 public enum OrderStatus {
-    PENDING_PAYMENT,
+    PENDING,
     CONFIRMED,
     PROCESSING,
     SHIPPED,

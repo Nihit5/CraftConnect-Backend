@@ -39,7 +39,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             Set.of(OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.CANCELLED);
 
     private static final List<OrderStatus> FORWARD_SEQUENCE = List.of(
-            OrderStatus.PENDING_PAYMENT, OrderStatus.CONFIRMED,
+            OrderStatus.PENDING, OrderStatus.CONFIRMED,
             OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED);
 
     @Override
@@ -74,7 +74,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
 
         OrderStatus current = orderProduct.getItemStatus();
 
-        if (current == null || current == OrderStatus.PENDING_PAYMENT || current == OrderStatus.PAYMENT_FAILED) {
+        if (current == null || current == OrderStatus.PAYMENT_FAILED) {
             throw new AppException("Cannot update delivery status until payment is confirmed.");
         }
         if (current == OrderStatus.DELIVERED || current == OrderStatus.CANCELLED) {
