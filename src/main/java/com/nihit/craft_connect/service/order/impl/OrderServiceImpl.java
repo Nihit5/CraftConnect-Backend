@@ -65,9 +65,7 @@ public class OrderServiceImpl implements OrderService {
         if (selectedCartProducts.size() != request.getCartProductIds().size()) {
             throw new AppException("Some selected products are invalid or not in your cart.");
         }
-        String orderUuid = UUID.randomUUID().toString();
         Order order = new Order();
-        order.setUuid(orderUuid);
         order.setUser(cart.getUser());
         order.setShippingAddress(shippingAddress);
         order.setRecipientName(shippingAddress.getRecipientName());
@@ -205,7 +203,6 @@ public class OrderServiceImpl implements OrderService {
     private OrderResponsePojo mapToResponse(Order order) {
         OrderResponsePojo response = new OrderResponsePojo();
         response.setOrderId(order.getId());
-        response.setOrderUuid(order.getUuid());
         response.setStatus(order.getStatus());
         response.setPaymentMethod(order.getPaymentMethod());
         response.setPaymentStatus(order.getPayment() != null ? order.getPayment().getStatus() : null);

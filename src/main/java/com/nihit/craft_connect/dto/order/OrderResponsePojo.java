@@ -12,7 +12,6 @@ import java.util.List;
 @Setter
 public class OrderResponsePojo {
     private Long orderId;
-    private String orderUuid;
     private OrderStatus status;
     private PaymentMethod paymentMethod;
     private PaymentStatus paymentStatus;

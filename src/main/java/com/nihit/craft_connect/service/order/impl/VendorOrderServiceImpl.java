@@ -94,11 +94,25 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         } else {
             orderProduct.setItemStatus(newStatus);
             orderProductRepository.save(orderProduct);
+            if (newStatus == OrderStatus.DELIVERED) {
+                markPaymentSuccessOnDelivery(orderProduct.getOrder());
+            }
         }
 
         recalculateOrderStatus(orderProduct.getOrder());
     }
 
+    private void markPaymentSuccessOnDelivery(Order order) {
+        Payment payment = order.getPayment();
+        if (payment == null) {
+            return;
+        }
+        if (payment.getStatus() == PaymentStatus.PENDING) {
+            payment.setStatus(PaymentStatus.SUCCESS);
+            payment.setModifiedDate(new Timestamp(System.currentTimeMillis()));
+            paymentRepository.save(payment);
+        }
+    }
     private void cancelItem(OrderProduct orderProduct, String cancellationReason) {
         // 1. restock — this part is always safe to automate regardless of payment method
         Product product = orderProduct.getProduct();
@@ -185,7 +199,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         Order order = op.getOrder();
         VendorOrderItemPojo pojo = new VendorOrderItemPojo();
         pojo.setOrderProductId(op.getId());
-        pojo.setOrderUuid(order.getUuid());
         pojo.setOrderId(order.getId());
         pojo.setOrderedDate(order.getCreatedDate());
         pojo.setProductId(op.getProduct().getId());
@@ -235,7 +248,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         VendorPaymentDetailPojo pojo = new VendorPaymentDetailPojo();
         pojo.setOrderId(order.getId());
         pojo.setOrderProductId(op.getId());
-        pojo.setOrderUuid(order.getUuid());
 
         pojo.setProductId(op.getProduct().getId());
         pojo.setProductName(op.getProduct().getName());
