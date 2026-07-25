@@ -26,4 +26,5 @@ public class CartProductPojo {
     private Integer cartQuantity;
 
     private Double subTotal;
+    private Long cartProductId;
 }

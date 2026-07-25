@@ -178,6 +178,7 @@ public class CartServiceImpl implements CartService {
             pojo.setDescription(product.getDescription());
             pojo.setImagePath(fileService.extractFileName(product.getImagePath()));
             pojo.setPrice(product.getPrice());
+            pojo.setCartProductId(cartProduct.getId());
 
             pojo.setAvailableQuantity(product.getQuantity());
 
