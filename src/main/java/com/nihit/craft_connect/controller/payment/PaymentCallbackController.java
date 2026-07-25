@@ -38,12 +38,12 @@ public class PaymentCallbackController {
             redirectBase = FRONTEND_SUCCESS_URL;
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create(FRONTEND_FAILURE_URL + "unknown"))
+                    .location(URI.create(FRONTEND_FAILURE_URL))
                     .build();
         }
 
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(redirectBase + orderId))
+                .location(URI.create(redirectBase))
                 .build();
     }
 
@@ -51,7 +51,7 @@ public class PaymentCallbackController {
     public ResponseEntity<Void> esewaSuccessCallback(@RequestParam String data) {
         Long orderId = paymentCallbackService.handleEsewaCallback(data);
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(FRONTEND_SUCCESS_URL + orderId))
+                .location(URI.create(FRONTEND_SUCCESS_URL))
                 .build();
     }
 
@@ -60,7 +60,7 @@ public class PaymentCallbackController {
         // eSewa hits this on user cancellation — we still need to mark the order failed
         Long orderId = paymentCallbackService.handleEsewaFailure(data);
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(FRONTEND_FAILURE_URL + orderId))
+                .location(URI.create(FRONTEND_FAILURE_URL))
                 .build();
     }
 }
