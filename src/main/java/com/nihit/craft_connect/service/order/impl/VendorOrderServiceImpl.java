@@ -74,7 +74,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
 
         OrderStatus current = orderProduct.getItemStatus();
 
-        if (current == OrderStatus.PENDING_PAYMENT || current == OrderStatus.PAYMENT_FAILED) {
+        if (current == null || current == OrderStatus.PENDING_PAYMENT || current == OrderStatus.PAYMENT_FAILED) {
             throw new AppException("Cannot update delivery status until payment is confirmed.");
         }
         if (current == OrderStatus.DELIVERED || current == OrderStatus.CANCELLED) {
