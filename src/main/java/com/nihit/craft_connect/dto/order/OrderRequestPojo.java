@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 public class OrderRequestPojo {
-    private String shippingAddress;
+    private Long shippingAddressId;
     private PaymentMethod paymentMethod;
     private List<Long> cartProductIds;
 }

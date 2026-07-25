@@ -12,6 +12,8 @@ public class CartResponsePojo {
 
     private Long cartId;
 
+    private Long productCount;
+
     private Integer totalItems;
 
     private Double totalPrice;

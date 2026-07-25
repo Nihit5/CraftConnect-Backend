@@ -38,6 +38,7 @@ public class OrderServiceImpl implements OrderService {
     private final CustomMessageSource customMessageSource;
     private final FileService fileService;
     private final PaymentGatewayServiceFactory paymentGatewayServiceFactory;
+    private final ShippingAddressRepository shippingAddressRepository;
     @Override
     @Transactional
     public OrderResponsePojo placeOrder(OrderRequestPojo request) {
@@ -46,11 +47,15 @@ public class OrderServiceImpl implements OrderService {
         if (request.getCartProductIds() == null || request.getCartProductIds().isEmpty()) {
             throw new AppException("Please select at least one product to order.");
         }
-
+        if (request.getShippingAddressId() == null) {
+            throw new AppException("Please select a shipping address.");
+        }
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(
                         customMessageSource.get(StringConstants.NOT_FOUND, "Cart")));
-
+        ShippingAddress shippingAddress = shippingAddressRepository
+                .findByIdAndUserId(request.getShippingAddressId(), userId)
+                .orElseThrow(() -> new AppException("Selected shipping address not found."));
         List<CartProduct> selectedCartProducts =
                 cartProductRepository.findByCartIdAndIdIn(cart.getId(), request.getCartProductIds());
 
@@ -63,7 +68,14 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = new Order();
         order.setUser(cart.getUser());
-        order.setShippingAddress(request.getShippingAddress());
+        order.setShippingAddress(shippingAddress);
+        order.setRecipientName(shippingAddress.getRecipientName());
+        order.setMobileNumber(shippingAddress.getMobileNumber());
+        order.setProvince(shippingAddress.getProvince());
+        order.setDistrict(shippingAddress.getDistrict());
+        order.setShippingAddressLine(shippingAddress.getAddress());
+        order.setLandmark(shippingAddress.getLandmark());
+        order.setAddressType(shippingAddress.getAddressType());
         order.setPaymentMethod(request.getPaymentMethod());
         order.setCreatedDate(new Timestamp(System.currentTimeMillis()));
         order.setModifiedDate(new Timestamp(System.currentTimeMillis()));
@@ -197,7 +209,13 @@ public class OrderServiceImpl implements OrderService {
         response.setPaymentMethod(order.getPaymentMethod());
         response.setPaymentStatus(order.getPayment() != null ? order.getPayment().getStatus() : null);
         response.setTotalAmount(order.getTotalAmount());
-        response.setShippingAddress(order.getShippingAddress());
+        response.setRecipientName(order.getRecipientName());
+        response.setMobileNumber(order.getMobileNumber());
+        response.setProvince(order.getProvince());
+        response.setDistrict(order.getDistrict());
+        response.setShippingAddressLine(order.getShippingAddressLine());
+        response.setLandmark(order.getLandmark());
+        response.setAddressType(order.getAddressType());
 
         List<OrderProductPojo> products = order.getOrderProducts().stream().map(op -> {
             OrderProductPojo pojo = new OrderProductPojo();

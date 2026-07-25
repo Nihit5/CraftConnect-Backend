@@ -197,7 +197,7 @@ public class CartServiceImpl implements CartService {
         response.setProducts(productPojos);
         response.setTotalItems(totalItems);
         response.setTotalPrice(totalPrice);
-
+        response.setProductCount((long) cartProducts.size());
         return response;
     }
 }

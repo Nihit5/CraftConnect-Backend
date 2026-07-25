@@ -1,5 +1,6 @@
 package com.nihit.craft_connect.entity;
 
+import com.nihit.craft_connect.enums.AddressType;
 import com.nihit.craft_connect.enums.OrderStatus;
 import com.nihit.craft_connect.enums.PaymentMethod;
 import jakarta.persistence.*;
@@ -35,9 +36,6 @@ public class Order {
     @Column(name = "payment_method")
     private PaymentMethod paymentMethod;
 
-    @Column(name = "shipping_address")
-    private String shippingAddress;
-
     @Column(name = "created_date")
     private Timestamp createdDate;
 
@@ -55,4 +53,30 @@ public class Order {
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Payment payment;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipping_address_id")
+    private ShippingAddress shippingAddress; // nullable — kept for reference only, not source of truth
+
+    @Column(name = "recipient_name")
+    private String recipientName;
+
+    @Column(name = "mobile_number")
+    private String mobileNumber;
+
+    @Column(name = "province")
+    private String province;
+
+    @Column(name = "district")
+    private String district;
+
+    @Column(name = "shipping_address_line")
+    private String shippingAddressLine;
+
+    @Column(name = "landmark")
+    private String landmark;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "address_type")
+    private AddressType addressType;
 }
