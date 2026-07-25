@@ -68,7 +68,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         Long vendorId = userDetailConfig.getLoggedInUserId();
 
         if (!VENDOR_SETTABLE_STATUSES.contains(newStatus)) {
-            throw new AppException("Invalid status. Allowed: CONFIRMED ,PROCESSING, SHIPPED, DELIVERED, CANCELLED.");
+            throw new AppException("Invalid status. Allowed: CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED.");
         }
 
         OrderProduct orderProduct = orderProductRepository
@@ -83,18 +83,19 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         if (current == OrderStatus.DELIVERED || current == OrderStatus.CANCELLED) {
             throw new AppException("This item's status is already final and cannot be changed.");
         }
-        if (newStatus != OrderStatus.CANCELLED && !isForwardMove(current, newStatus)) {
-            throw new AppException("Cannot move status from " + current + " to " + newStatus + ".");
-        }
 
         if (newStatus == OrderStatus.CANCELLED) {
+            if (current == OrderStatus.SHIPPED) {
+                throw new AppException("Cannot cancel an item that has already been shipped.");
+            }
             cancelItem(orderProduct, cancellationReason);
+        } else if (!isForwardMove(current, newStatus)) {
+            throw new AppException("Cannot move status from " + current + " to " + newStatus + ".");
         } else {
             orderProduct.setItemStatus(newStatus);
             orderProductRepository.save(orderProduct);
         }
 
-        // NEW — recalculate order-level status after ANY item status change, not just cancellation
         recalculateOrderStatus(orderProduct.getOrder());
     }
 
@@ -184,6 +185,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         Order order = op.getOrder();
         VendorOrderItemPojo pojo = new VendorOrderItemPojo();
         pojo.setOrderProductId(op.getId());
+        pojo.setOrderUuid(order.getUuid());
         pojo.setOrderId(order.getId());
         pojo.setOrderedDate(order.getCreatedDate());
         pojo.setProductId(op.getProduct().getId());
@@ -233,6 +235,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         VendorPaymentDetailPojo pojo = new VendorPaymentDetailPojo();
         pojo.setOrderId(order.getId());
         pojo.setOrderProductId(op.getId());
+        pojo.setOrderUuid(order.getUuid());
 
         pojo.setProductId(op.getProduct().getId());
         pojo.setProductName(op.getProduct().getName());

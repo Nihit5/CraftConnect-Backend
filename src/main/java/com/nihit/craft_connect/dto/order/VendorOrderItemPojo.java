@@ -12,6 +12,7 @@ import java.sql.Timestamp;
 public class VendorOrderItemPojo {
     private Long orderProductId;
     private Long orderId;
+    private String orderUuid;
     private Timestamp orderedDate;
     private Long productId;
     private String productName;
