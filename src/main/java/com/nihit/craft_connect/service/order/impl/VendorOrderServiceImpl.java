@@ -39,7 +39,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
     private final OrderRepository orderRepository;
 
     private static final Set<OrderStatus> VENDOR_SETTABLE_STATUSES =
-            Set.of(OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.CANCELLED);
+            Set.of(OrderStatus.CONFIRMED, OrderStatus.PROCESSING, OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.CANCELLED);
 
     private static final List<OrderStatus> FORWARD_SEQUENCE = List.of(
             OrderStatus.PENDING, OrderStatus.CONFIRMED,
@@ -68,7 +68,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         Long vendorId = userDetailConfig.getLoggedInUserId();
 
         if (!VENDOR_SETTABLE_STATUSES.contains(newStatus)) {
-            throw new AppException("Invalid status. Allowed: PROCESSING, SHIPPED, DELIVERED, CANCELLED.");
+            throw new AppException("Invalid status. Allowed: CONFIRMED ,PROCESSING, SHIPPED, DELIVERED, CANCELLED.");
         }
 
         OrderProduct orderProduct = orderProductRepository
