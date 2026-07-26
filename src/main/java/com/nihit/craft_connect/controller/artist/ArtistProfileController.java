@@ -54,4 +54,11 @@ public class ArtistProfileController extends BaseController {
         return ResponseEntity.ok(successResponse(
                 customMessageSource.get(SuccessConstants.SUCCESS_DELETE, "Work"), null));
     }
+
+    @GetMapping("/list")
+    public ResponseEntity<GlobalApiResponse> getPublicArtistList() {
+        return ResponseEntity.ok(successResponse(
+                customMessageSource.get(SuccessConstants.SUCCESS_RETRIEVE, "Artists"),
+                artistProfileService.getPublicArtistList()));
+    }
 }

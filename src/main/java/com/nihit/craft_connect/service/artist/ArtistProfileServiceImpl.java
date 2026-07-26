@@ -1,12 +1,14 @@
 package com.nihit.craft_connect.service.artist;
 
 import com.nihit.craft_connect.config.UserDetailConfig;
+import com.nihit.craft_connect.dto.user.ArtistListItemPojo;
 import com.nihit.craft_connect.dto.user.ArtistProfileResponsePojo;
 import com.nihit.craft_connect.dto.user.ArtistWorkRequestPojo;
 import com.nihit.craft_connect.dto.user.ArtistWorkResponsePojo;
 import com.nihit.craft_connect.entity.ArtistDetails;
 import com.nihit.craft_connect.entity.ArtistWork;
 import com.nihit.craft_connect.entity.User;
+import com.nihit.craft_connect.enums.Status;
 import com.nihit.craft_connect.exception.AppException;
 import com.nihit.craft_connect.repository.ArtistWorkRepository;
 import com.nihit.craft_connect.repository.UserRepository;
@@ -143,6 +145,35 @@ public class ArtistProfileServiceImpl implements ArtistProfileService {
         pojo.setImagePath(fileService.extractFileName(work.getImagePath()));
         pojo.setDisplayOrder(work.getDisplayOrder());
         pojo.setCreatedDate(work.getCreatedDate());
+        return pojo;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ArtistListItemPojo> getPublicArtistList() {
+        List<User> artists = userRepository.findByRoleAndStatus("ROLE_ARTIST", Status.APPROVED);
+
+        return artists.stream()
+                .filter(a -> a.getArtistDetails() != null)
+                .map(this::mapToListItem)
+                .toList();
+    }
+
+    private ArtistListItemPojo mapToListItem(User artist) {
+        ArtistDetails details = artist.getArtistDetails();
+
+        ArtistListItemPojo pojo = new ArtistListItemPojo();
+        pojo.setId(artist.getId());
+        pojo.setFirstName(artist.getFirstName());
+        pojo.setLastName(artist.getLastName());
+        pojo.setDisplayPicture(fileService.extractFileName(artist.getDisplayPicturePath()));
+        pojo.setArtSpecialization(details.getArtSpecialization());
+        pojo.setBio(details.getBio());
+        pojo.setProvince(details.getProvince());
+        pojo.setDistrict(details.getDistrict());
+        pojo.setLatitude(details.getLatitude());
+        pojo.setLongitude(details.getLongitude());
+        pojo.setCoverImagePath(fileService.extractFileName(details.getPortfolioImagePath()));
         return pojo;
     }
 }

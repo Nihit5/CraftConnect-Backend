@@ -1,5 +1,6 @@
 package com.nihit.craft_connect.service.artist;
 
+import com.nihit.craft_connect.dto.user.ArtistListItemPojo;
 import com.nihit.craft_connect.dto.user.ArtistProfileResponsePojo;
 import com.nihit.craft_connect.dto.user.ArtistWorkRequestPojo;
 import com.nihit.craft_connect.dto.user.ArtistWorkResponsePojo;
@@ -14,4 +15,5 @@ public interface ArtistProfileService {
     ArtistWorkResponsePojo addWork(ArtistWorkRequestPojo request);
     ArtistWorkResponsePojo updateWork(Long workId, ArtistWorkRequestPojo request);
     void deleteWork(Long workId);
+    List<ArtistListItemPojo> getPublicArtistList();
 }
