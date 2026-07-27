@@ -6,17 +6,10 @@ import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class CartResponsePojo {
-
     private Long cartId;
-
     private Long productCount;
-
     private Integer totalItems;
-
     private Double totalPrice;
-
-    private List<CartProductPojo> products;
+    private List<VendorCartGroupPojo> vendorGroups;
 }

@@ -65,6 +65,16 @@ public class OrderServiceImpl implements OrderService {
         if (selectedCartProducts.size() != request.getCartProductIds().size()) {
             throw new AppException("Some selected products are invalid or not in your cart.");
         }
+        long distinctVendorCount = selectedCartProducts.stream()
+                .map(cp -> cp.getProduct().getUser().getId())
+                .distinct()
+                .count();
+
+        if (distinctVendorCount > 1) {
+            throw new AppException(
+                    "You can only order from one vendor at a time. Please checkout each vendor's items separately."
+            );
+        }
         Order order = new Order();
         order.setUser(cart.getUser());
         order.setShippingAddress(shippingAddress);

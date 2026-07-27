@@ -5,9 +5,11 @@ import com.nihit.craft_connect.config.UserDetailConfig;
 import com.nihit.craft_connect.constants.StringConstants;
 import com.nihit.craft_connect.dto.cart.CartProductPojo;
 import com.nihit.craft_connect.dto.cart.CartResponsePojo;
+import com.nihit.craft_connect.dto.cart.VendorCartGroupPojo;
 import com.nihit.craft_connect.entity.Cart;
 import com.nihit.craft_connect.entity.CartProduct;
 import com.nihit.craft_connect.entity.Product;
+import com.nihit.craft_connect.entity.User;
 import com.nihit.craft_connect.exception.AppException;
 import com.nihit.craft_connect.repository.CartProductRepository;
 import com.nihit.craft_connect.repository.CartRepository;
@@ -19,7 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -149,52 +154,70 @@ public class CartServiceImpl implements CartService {
 
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(
-                        customMessageSource.get(
-                                StringConstants.NOT_FOUND,
-                                "Cart"
-                        )
+                        customMessageSource.get(StringConstants.NOT_FOUND, "Cart")));
+
+        List<CartProduct> cartProducts = cartProductRepository.findByCartId(cart.getId());
+
+        Map<User, List<CartProduct>> byVendor = cartProducts.stream()
+                .collect(Collectors.groupingBy(
+                        cp -> cp.getProduct().getUser(),
+                        LinkedHashMap::new,
+                        Collectors.toList()
                 ));
 
-        List<CartProduct> cartProducts =
-                cartProductRepository.findByCartId(cart.getId());
-
-        CartResponsePojo response = new CartResponsePojo();
-
-        response.setCartId(cart.getId());
-
-        List<CartProductPojo> productPojos = new ArrayList<>();
-
+        List<VendorCartGroupPojo> vendorGroups = new ArrayList<>();
         int totalItems = 0;
         double totalPrice = 0.0;
 
-        for (CartProduct cartProduct : cartProducts) {
+        for (Map.Entry<User, List<CartProduct>> entry : byVendor.entrySet()) {
+            User vendor = entry.getKey();
+            List<CartProduct> vendorCartProducts = entry.getValue();
 
-            Product product = cartProduct.getProduct();
+            List<CartProductPojo> productPojos = new ArrayList<>();
+            int vendorItemCount = 0;
+            double vendorSubTotal = 0.0;
 
-            CartProductPojo pojo = new CartProductPojo();
+            for (CartProduct cartProduct : vendorCartProducts) {
+                Product product = cartProduct.getProduct();
 
-            pojo.setProductId(product.getId());
-            pojo.setName(product.getName());
-            pojo.setDescription(product.getDescription());
-            pojo.setImagePath(fileService.extractFileName(product.getImagePath()));
-            pojo.setPrice(product.getPrice());
-            pojo.setCartProductId(cartProduct.getId());
+                CartProductPojo pojo = new CartProductPojo();
+                pojo.setProductId(product.getId());
+                pojo.setName(product.getName());
+                pojo.setDescription(product.getDescription());
+                pojo.setImagePath(fileService.extractFileName(product.getImagePath()));
+                pojo.setPrice(product.getPrice());
+                pojo.setCartProductId(cartProduct.getId());
+                pojo.setAvailableQuantity(product.getQuantity());
+                pojo.setCartQuantity(cartProduct.getQuantity());
 
-            pojo.setAvailableQuantity(product.getQuantity());
+                double subTotal = product.getPrice() * cartProduct.getQuantity();
+                pojo.setSubTotal(subTotal);
 
-            pojo.setCartQuantity(cartProduct.getQuantity());
+                vendorItemCount += cartProduct.getQuantity();
+                vendorSubTotal += subTotal;
+                productPojos.add(pojo);
+            }
 
-            double subTotal = product.getPrice() * cartProduct.getQuantity();
+            VendorCartGroupPojo group = new VendorCartGroupPojo();
+            group.setVendorId(vendor.getId());
+            group.setVendorName(
+                    vendor.getVendorDetails() != null
+                            ? vendor.getVendorDetails().getBusinessName()
+                            : vendor.getFirstName() + " " + vendor.getLastName()
+            );
+            group.setProducts(productPojos);
+            group.setItemCount(vendorItemCount);
+            group.setSubTotal(vendorSubTotal);
 
-            pojo.setSubTotal(subTotal);
+            vendorGroups.add(group);
 
-            totalItems += cartProduct.getQuantity();
-            totalPrice += subTotal;
-
-            productPojos.add(pojo);
+            totalItems += vendorItemCount;
+            totalPrice += vendorSubTotal;
         }
 
-        response.setProducts(productPojos);
+        CartResponsePojo response = new CartResponsePojo();
+        response.setCartId(cart.getId());
+        response.setVendorGroups(vendorGroups);
         response.setTotalItems(totalItems);
         response.setTotalPrice(totalPrice);
         response.setProductCount((long) cartProducts.size());
