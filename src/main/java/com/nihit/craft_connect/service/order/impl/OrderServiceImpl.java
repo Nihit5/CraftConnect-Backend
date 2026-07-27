@@ -130,7 +130,7 @@ public class OrderServiceImpl implements OrderService {
 
         Payment payment = new Payment();
         payment.setOrder(order);
-        payment.setMethod(method);   // reuse the same variable — remove the old duplicate "PaymentMethod method = ..." line further down
+        payment.setMethod(method);
         payment.setAmount(totalAmount);
         payment.setMerchantTxnId(UUID.randomUUID().toString());
         payment.setCreatedDate(new Timestamp(System.currentTimeMillis()));
