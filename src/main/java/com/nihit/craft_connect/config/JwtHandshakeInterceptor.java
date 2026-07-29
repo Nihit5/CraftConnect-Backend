@@ -24,10 +24,20 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
         if (request instanceof ServletServerHttpRequest servletRequest) {
+            String requestUri = servletRequest.getServletRequest().getRequestURI();
+            // SockJS issues a preliminary GET /ws/info (without query params / token)
+            // to negotiate transport. NEVER block it here — the actual auth happens
+            // later on the STOMP CONNECT frame inside StompPrincipalConfig.
+            if (requestUri != null && requestUri.endsWith("/info")) {
+                return true;
+            }
+
             String token = servletRequest.getServletRequest().getParameter("token");
             if (token == null) {
-                response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                return false;
+                // Token might be passed via STOMP CONNECT headers instead of query param.
+                // Accept the handshake; StompPrincipalConfig will validate it on CONNECT.
+                // Only reject here if the legacy query-param style is provided but invalid.
+                return true;
             }
             try {
                 String username = jwtTokenHelper.extractUsernameFromToken(token);
@@ -40,6 +50,7 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
                 Map<String, Object> claims = jwtTokenHelper.getAllClaimsAsMap(token);
                 Long userId = Long.parseLong(String.valueOf(claims.get("userId")));
                 attributes.put("userId", userId);
+                attributes.put("jwtToken", token);
             } catch (Exception e) {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return false;
