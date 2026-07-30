@@ -189,7 +189,7 @@ public class ChatServiceImpl implements ChatService {
         receipt.put("otherId", otherId);
         receipt.put("unreadCount", unreadCount);
         receipt.put("timestamp", System.currentTimeMillis());
-        receipt.put("data", receipt);
+//        receipt.put("data", receipt);
 
         log.info("WS PUSH [READ_RECEIPT] reader={} other={} conv={}", readerId, otherId, conversationId);
         // Send to the OTHER user (the sender of the now-read messages) via
@@ -313,7 +313,7 @@ public class ChatServiceImpl implements ChatService {
 
         boolean isParticipant = conversation.getUserOne().getId().equals(readerId)
                 || conversation.getUserTwo().getId().equals(readerId);
-        log.info("participant {}", isParticipant);
+        log.info("participant", isParticipant);
         if (!isParticipant) {
             throw new AppException("You are not part of this conversation.");
         }
@@ -353,7 +353,11 @@ public class ChatServiceImpl implements ChatService {
         long remainingUnread = chatMessageRepository
                 .countByConversation_IdAndReceiver_IdAndIsReadFalse(conversationId, otherId);
 
-        broadcastReadReceipt(readerId, otherId, conversationId, remainingUnread);
+        try {
+            broadcastReadReceipt(readerId, otherId, conversationId, remainingUnread);
+        } catch (Exception e) {
+            log.warn("Failed to broadcast read receipt for conv={}", conversationId, e);
+        }
     }
 
     private ChatMessageResponsePojo mapMessage(ChatMessage m) {
