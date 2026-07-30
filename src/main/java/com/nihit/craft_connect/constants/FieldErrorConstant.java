@@ -13,4 +13,5 @@ public class FieldErrorConstant {
     public static final String MOBILE_LENGTH = "mobile.length.exact";
     public static final String UNIQUE_EMAIL = "email.unique";
     public static final String UNIQUE_MOBILE = "mobile.unique";
+    public static final String PASSWORD_MIN_LENGTH = "password.length";
 }

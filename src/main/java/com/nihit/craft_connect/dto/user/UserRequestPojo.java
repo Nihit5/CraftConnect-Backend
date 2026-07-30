@@ -1,9 +1,7 @@
 package com.nihit.craft_connect.dto.user;
 
 import com.nihit.craft_connect.constants.FieldErrorConstant;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,9 +25,11 @@ public class UserRequestPojo {
     private String email;
     @NotNull(message = FieldErrorConstant.NOT_NULL)
     @NotBlank(message = FieldErrorConstant.NOT_BLANK)
+    @Pattern(regexp = "^[0-9]{10}$", message = FieldErrorConstant.MOBILE_LENGTH)
     private String mobileNumber;
     @NotNull(message = FieldErrorConstant.NOT_NULL)
     @NotBlank(message = FieldErrorConstant.NOT_BLANK)
+    @Size(min = 8,  message = FieldErrorConstant.PASSWORD_MIN_LENGTH)
     private String password;
     @NotNull(message = FieldErrorConstant.NOT_NULL)
     @NotBlank(message = FieldErrorConstant.NOT_BLANK)

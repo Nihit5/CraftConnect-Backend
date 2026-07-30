@@ -115,6 +115,8 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
                 case ErrorCodeConstants.SIZE:
                     if ("mobileNumber".equalsIgnoreCase(errorField)) {
                         errors.add(customMessageSource.get(FieldErrorConstant.MOBILE_LENGTH));
+                    } else if ("password".equalsIgnoreCase(errorField) || "newpassword".equalsIgnoreCase(errorField)) {
+                        errors.add(customMessageSource.get(FieldErrorConstant.PASSWORD_MIN_LENGTH));
                     } else {
                         errorArguments = errorArguments == null ? new Object[]{"", ""} : errorArguments;
                         errors.add(customMessageSource.get(FieldErrorConstant.SIZE, errorFieldValidationCode, errorArguments[2], errorArguments[1]));
@@ -127,7 +129,11 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
                     errors.add(customMessageSource.get(FieldErrorConstant.LENGTH, errorArguments[1], errorArguments[2]));
                     break;
                 case ErrorCodeConstants.PATTERN:
-                    errors.add(customMessageSource.get(FieldErrorConstant.PATTERN, errorField, errorArguments[2]));
+                    if ("mobileNumber".equalsIgnoreCase(errorField)) {
+                        errors.add(customMessageSource.get(FieldErrorConstant.MOBILE_LENGTH));
+                    } else {
+                        errors.add(customMessageSource.get(FieldErrorConstant.PATTERN, errorField, errorArguments[2]));
+                    }
                     break;
                 default:
                     errors.add(errorFieldValidationCode + " " + defaultMessage);
