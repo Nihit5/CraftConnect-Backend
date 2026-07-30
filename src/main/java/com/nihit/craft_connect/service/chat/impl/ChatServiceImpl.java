@@ -69,62 +69,62 @@ public class ChatServiceImpl implements ChatService {
         return s;
     }
 
-    private void debugReport(String hypothesisId, String location, String msg, Map<String, Object> data) {
-        try {
-            URL url = new URL("http://127.0.0.1:7777/event");
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setConnectTimeout(300);
-            conn.setReadTimeout(300);
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Content-Type", "application/json");
-            String payload = String.format(
-                    "{\"sessionId\":\"chat-unread-reset\",\"runId\":\"pre-fix\",\"hypothesisId\":\"%s\",\"location\":\"%s\",\"msg\":\"%s\",\"data\":%s,\"ts\":%d}",
-                    escapeJson(hypothesisId),
-                    escapeJson(location),
-                    escapeJson(msg),
-                    toJsonObject(data),
-                    System.currentTimeMillis()
-            );
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(payload.getBytes(StandardCharsets.UTF_8));
-            }
-            conn.getResponseCode();
-            conn.disconnect();
-        } catch (Exception ignore) {
-            // instrumentation must never affect business flow
-        }
-    }
-
-    private String toJsonObject(Map<String, Object> data) {
-        if (data == null || data.isEmpty()) return "{}";
-        StringBuilder sb = new StringBuilder("{");
-        boolean first = true;
-        for (Map.Entry<String, Object> entry : data.entrySet()) {
-            if (!first) sb.append(',');
-            first = false;
-            sb.append('"').append(escapeJson(entry.getKey())).append('"').append(':');
-            Object value = entry.getValue();
-            if (value == null) {
-                sb.append("null");
-            } else if (value instanceof Number || value instanceof Boolean) {
-                sb.append(value);
-            } else {
-                sb.append('"').append(escapeJson(String.valueOf(value))).append('"');
-            }
-        }
-        sb.append('}');
-        return sb.toString();
-    }
-
-    private String escapeJson(String value) {
-        if (value == null) return "";
-        return value
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\r", "\\r")
-                .replace("\n", "\\n");
-    }
+//    private void debugReport(String hypothesisId, String location, String msg, Map<String, Object> data) {
+//        try {
+//            URL url = new URL("http://127.0.0.1:7777/event");
+//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//            conn.setRequestMethod("POST");
+//            conn.setConnectTimeout(300);
+//            conn.setReadTimeout(300);
+//            conn.setDoOutput(true);
+//            conn.setRequestProperty("Content-Type", "application/json");
+//            String payload = String.format(
+//                    "{\"sessionId\":\"chat-unread-reset\",\"runId\":\"pre-fix\",\"hypothesisId\":\"%s\",\"location\":\"%s\",\"msg\":\"%s\",\"data\":%s,\"ts\":%d}",
+//                    escapeJson(hypothesisId),
+//                    escapeJson(location),
+//                    escapeJson(msg),
+//                    toJsonObject(data),
+//                    System.currentTimeMillis()
+//            );
+//            try (OutputStream os = conn.getOutputStream()) {
+//                os.write(payload.getBytes(StandardCharsets.UTF_8));
+//            }
+//            conn.getResponseCode();
+//            conn.disconnect();
+//        } catch (Exception ignore) {
+//            // instrumentation must never affect business flow
+//        }
+//    }
+//
+//    private String toJsonObject(Map<String, Object> data) {
+//        if (data == null || data.isEmpty()) return "{}";
+//        StringBuilder sb = new StringBuilder("{");
+//        boolean first = true;
+//        for (Map.Entry<String, Object> entry : data.entrySet()) {
+//            if (!first) sb.append(',');
+//            first = false;
+//            sb.append('"').append(escapeJson(entry.getKey())).append('"').append(':');
+//            Object value = entry.getValue();
+//            if (value == null) {
+//                sb.append("null");
+//            } else if (value instanceof Number || value instanceof Boolean) {
+//                sb.append(value);
+//            } else {
+//                sb.append('"').append(escapeJson(String.valueOf(value))).append('"');
+//            }
+//        }
+//        sb.append('}');
+//        return sb.toString();
+//    }
+//
+//    private String escapeJson(String value) {
+//        if (value == null) return "";
+//        return value
+//                .replace("\\", "\\\\")
+//                .replace("\"", "\\\"")
+//                .replace("\r", "\\r")
+//                .replace("\n", "\\n");
+//    }
 
     private void sendToTopic(String destination, Map<String, Object> body) {
         messagingTemplate.convertAndSend((String) destination, (Object) body);
@@ -291,15 +291,15 @@ public class ChatServiceImpl implements ChatService {
             return pojo;
         }).toList();
         // #region debug-point C:get-conversations-unread
-        debugReport("C", "ChatServiceImpl.java:getMyConversations", "[DEBUG] conversations unread snapshot",
-                Map.of(
-                        "userId", userId,
-                        "conversationCount", result.size(),
-                        "snapshot", result.stream()
-                                .map(item -> item.getConversationId() + ":" + item.getUnreadCount())
-                                .reduce((a, b) -> a + "|" + b)
-                                .orElse("")
-                ));
+//        debugReport("C", "ChatServiceImpl.java:getMyConversations", "[DEBUG] conversations unread snapshot",
+//                Map.of(
+//                        "userId", userId,
+//                        "conversationCount", result.size(),
+//                        "snapshot", result.stream()
+//                                .map(item -> item.getConversationId() + ":" + item.getUnreadCount())
+//                                .reduce((a, b) -> a + "|" + b)
+//                                .orElse("")
+//                ));
         // #endregion
         return result;
     }
@@ -307,13 +307,11 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional
     public void markAsRead(Long conversationId, Long readerId) {
-        log.info("Mark as read api hit, {}", readerId);
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new AppException("Conversation not found."));
 
         boolean isParticipant = conversation.getUserOne().getId().equals(readerId)
                 || conversation.getUserTwo().getId().equals(readerId);
-        log.info("participant", isParticipant);
         if (!isParticipant) {
             throw new AppException("You are not part of this conversation.");
         }
@@ -321,12 +319,12 @@ public class ChatServiceImpl implements ChatService {
         List<ChatMessage> unread = chatMessageRepository
                 .findByConversation_IdAndReceiver_IdAndIsReadFalse(conversationId, readerId);
         // #region debug-point B:mark-as-read-before-save
-        debugReport("B", "ChatServiceImpl.java:markAsRead:beforeSave", "[DEBUG] markAsRead unread loaded",
-                Map.of(
-                        "conversationId", conversationId,
-                        "readerId", readerId,
-                        "unreadCountBefore", unread.size()
-                ));
+//        debugReport("B", "ChatServiceImpl.java:markAsRead:beforeSave", "[DEBUG] markAsRead unread loaded",
+//                Map.of(
+//                        "conversationId", conversationId,
+//                        "readerId", readerId,
+//                        "unreadCountBefore", unread.size()
+//                ));
         // #endregion
         if (unread.isEmpty()) {
             return; // nothing to update — avoid no-op WS broadcasts
@@ -336,12 +334,12 @@ public class ChatServiceImpl implements ChatService {
         long readerRemainingUnread = chatMessageRepository
                 .countByConversation_IdAndReceiver_IdAndIsReadFalse(conversationId, readerId);
         // #region debug-point B:mark-as-read-after-save
-        debugReport("B", "ChatServiceImpl.java:markAsRead:afterSave", "[DEBUG] markAsRead saved unread update",
-                Map.of(
-                        "conversationId", conversationId,
-                        "readerId", readerId,
-                        "readerRemainingUnread", readerRemainingUnread
-                ));
+//        debugReport("B", "ChatServiceImpl.java:markAsRead:afterSave", "[DEBUG] markAsRead saved unread update",
+//                Map.of(
+//                        "conversationId", conversationId,
+//                        "readerId", readerId,
+//                        "readerRemainingUnread", readerRemainingUnread
+//                ));
         // #endregion
 
         // Identify the OTHER user (the original sender of the now-read messages)
