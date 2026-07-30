@@ -1,0 +1,18 @@
+package com.nihit.craft_connect.dto.passwordchange;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
+
+@Getter
+@Setter
+public class ChangePasswordRequest {
+    @NotBlank
+    private String oldPassword;
+    @NotBlank
+    @Size(min = 8, message = "Password must be at least 8 characters")
+    private String newPassword;
+
+    @NotBlank
+    private String confirmPassword;
+}

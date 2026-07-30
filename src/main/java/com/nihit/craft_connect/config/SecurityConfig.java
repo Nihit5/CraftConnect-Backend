@@ -62,7 +62,10 @@ public class SecurityConfig extends WebMvcConfigurationSupport {
             "/api/v1/artist/{artistId}",
             "/api/v1/artist/list",
             "/ws/**",
-            "/ws-raw/**"
+            "/ws-raw/**",
+            "/api/v1/password/forgot/request-otp",
+            "/api/v1/password/forgot/verify-otp",
+            "/api/v1/password/forgot/reset"
     };
 
 
