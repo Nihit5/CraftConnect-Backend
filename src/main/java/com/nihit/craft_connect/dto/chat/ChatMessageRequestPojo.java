@@ -7,5 +7,6 @@ import lombok.Setter;
 @Setter
 public class ChatMessageRequestPojo {
     private Long receiverId;
+    private Long conversationId;
     private String content;
 }

@@ -13,6 +13,10 @@ public class ChatMessageResponsePojo {
     private String senderName;
     private Long receiverId;
     private String content;
+    private String attachmentPath;
+    private String attachmentName;
+    private String attachmentContentType;
+    private Long attachmentSize;
     private Boolean isRead;
     private Timestamp sentDate;
 }

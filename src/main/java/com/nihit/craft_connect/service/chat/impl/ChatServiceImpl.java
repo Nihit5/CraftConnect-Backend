@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -67,6 +68,33 @@ public class ChatServiceImpl implements ChatService {
      */
     private static String asDest(String s) {
         return s;
+    }
+
+    private void debugAttachmentReport(String hypothesisId, String location, String message, String dataJson) {
+        try {
+            URL url = new URL("http://127.0.0.1:7777/event");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setConnectTimeout(300);
+            conn.setReadTimeout(300);
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+            String payload = String.format(
+                    "{\"sessionId\":\"chat-attachment-send\",\"runId\":\"pre-fix\",\"hypothesisId\":\"%s\",\"location\":\"%s\",\"msg\":\"%s\",\"data\":%s,\"ts\":%d}",
+                    hypothesisId,
+                    location,
+                    message,
+                    dataJson,
+                    System.currentTimeMillis()
+            );
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(payload.getBytes(StandardCharsets.UTF_8));
+            }
+            conn.getResponseCode();
+            conn.disconnect();
+        } catch (Exception ignore) {
+            // instrumentation must never affect business flow
+        }
     }
 
 //    private void debugReport(String hypothesisId, String location, String msg, Map<String, Object> data) {
@@ -211,7 +239,47 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional
     public ChatMessageResponsePojo sendMessage(Long senderId, Long receiverId, String content) {
-        if (content == null || content.isBlank()) {
+        return sendMessage(senderId, receiverId, content, null);
+    }
+
+    private String buildConversationPreview(String content, MultipartFile attachment, ChatMessage message) {
+        if (content != null && !content.isBlank()) {
+            return content;
+        }
+        String attachmentName = null;
+        if (attachment != null && attachment.getOriginalFilename() != null && !attachment.getOriginalFilename().isBlank()) {
+            attachmentName = attachment.getOriginalFilename().trim();
+        } else if (message != null && message.getAttachmentName() != null && !message.getAttachmentName().isBlank()) {
+            attachmentName = message.getAttachmentName().trim();
+        }
+        if (attachmentName != null && !attachmentName.isBlank()) {
+            return "Attachment: " + attachmentName;
+        }
+        return "Attachment";
+    }
+
+    @Override
+    @Transactional
+    public ChatMessageResponsePojo sendMessage(Long senderId, Long receiverId, String content, MultipartFile attachment) {
+        boolean hasText = content != null && !content.isBlank();
+        boolean hasAttachment = attachment != null && !attachment.isEmpty();
+        // #region debug-point C:service-send-entry
+        debugAttachmentReport(
+                hasAttachment ? "C" : "E",
+                "ChatServiceImpl.java:sendMessage:entry",
+                "[DEBUG] chat service sendMessage invoked",
+                String.format(
+                        "{\"senderId\":%d,\"receiverId\":%d,\"hasText\":%s,\"hasAttachment\":%s,\"attachmentName\":%s,\"attachmentSize\":%s}",
+                        senderId,
+                        receiverId,
+                        hasText,
+                        hasAttachment,
+                        attachment != null && attachment.getOriginalFilename() != null ? "\"" + attachment.getOriginalFilename().replace("\"", "\\\"") + "\"" : "null",
+                        attachment != null ? attachment.getSize() : null
+                )
+        );
+        // #endregion
+        if (!hasText && !hasAttachment) {
             throw new AppException("Message cannot be empty.");
         }
         if (senderId.equals(receiverId)) {
@@ -238,17 +306,63 @@ public class ChatServiceImpl implements ChatService {
         message.setConversation(conversation);
         message.setSender(sender);
         message.setReceiver(receiver);
-        message.setContent(content);
+        message.setContent(hasText ? content.trim() : null);
+        if (hasAttachment) {
+            // #region debug-point C:file-upload-before
+            debugAttachmentReport(
+                    "C",
+                    "ChatServiceImpl.java:sendMessage:beforeUpload",
+                    "[DEBUG] about to upload attachment",
+                    String.format(
+                            "{\"senderId\":%d,\"receiverId\":%d,\"attachmentName\":%s,\"attachmentSize\":%s,\"attachmentType\":%s}",
+                            senderId,
+                            receiverId,
+                            attachment.getOriginalFilename() != null ? "\"" + attachment.getOriginalFilename().replace("\"", "\\\"") + "\"" : "null",
+                            attachment.getSize(),
+                            attachment.getContentType() != null ? "\"" + attachment.getContentType().replace("\"", "\\\"") + "\"" : "null"
+                    )
+            );
+            // #endregion
+            message.setAttachmentPath(fileService.uploadAttachment(attachment));
+            message.setAttachmentName(attachment.getOriginalFilename());
+            message.setAttachmentContentType(attachment.getContentType());
+            message.setAttachmentSize(attachment.getSize());
+            // #region debug-point C:file-upload-after
+            debugAttachmentReport(
+                    "C",
+                    "ChatServiceImpl.java:sendMessage:afterUpload",
+                    "[DEBUG] attachment upload finished",
+                    String.format(
+                            "{\"attachmentPath\":%s}",
+                            message.getAttachmentPath() != null ? "\"" + message.getAttachmentPath().replace("\\", "\\\\").replace("\"", "\\\"") + "\"" : "null"
+                    )
+            );
+            // #endregion
+        }
         message.setIsRead(false);
         message.setSentDate(now);
 
-        conversation.setLastMessage(content);
+        conversation.setLastMessage(buildConversationPreview(content, attachment, message));
         conversation.setLastMessageAt(now);
 
         conversationRepository.save(conversation);
         chatMessageRepository.save(message);
 
         ChatMessageResponsePojo response = mapMessage(message);
+        // #region debug-point D:service-send-success
+        debugAttachmentReport(
+                hasAttachment ? "D" : "E",
+                "ChatServiceImpl.java:sendMessage:success",
+                "[DEBUG] chat service sendMessage success",
+                String.format(
+                        "{\"messageId\":%d,\"conversationId\":%d,\"attachmentPath\":%s,\"attachmentName\":%s}",
+                        response.getId(),
+                        response.getConversationId(),
+                        response.getAttachmentPath() != null ? "\"" + response.getAttachmentPath().replace("\\", "\\\\").replace("\"", "\\\"") + "\"" : "null",
+                        response.getAttachmentName() != null ? "\"" + response.getAttachmentName().replace("\"", "\\\"") + "\"" : "null"
+                )
+        );
+        // #endregion
         broadcastNewMessage(response, senderId, receiverId, conversation.getId());
 
         return response;
@@ -366,6 +480,10 @@ public class ChatServiceImpl implements ChatService {
         pojo.setSenderName(m.getSender().getFirstName() + " " + m.getSender().getLastName());
         pojo.setReceiverId(m.getReceiver().getId());
         pojo.setContent(m.getContent());
+        pojo.setAttachmentPath(fileService.extractFileName(m.getAttachmentPath()));
+        pojo.setAttachmentName(m.getAttachmentName());
+        pojo.setAttachmentContentType(m.getAttachmentContentType());
+        pojo.setAttachmentSize(m.getAttachmentSize());
         pojo.setIsRead(m.getIsRead());
         pojo.setSentDate(m.getSentDate());
         return pojo;

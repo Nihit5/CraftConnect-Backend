@@ -33,6 +33,18 @@ public class ChatMessage {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "attachment_path")
+    private String attachmentPath;
+
+    @Column(name = "attachment_name")
+    private String attachmentName;
+
+    @Column(name = "attachment_content_type")
+    private String attachmentContentType;
+
+    @Column(name = "attachment_size")
+    private Long attachmentSize;
+
     @Column(name = "is_read")
     private Boolean isRead;
 

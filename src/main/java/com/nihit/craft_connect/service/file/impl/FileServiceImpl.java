@@ -24,6 +24,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,33 @@ public class FileServiceImpl implements FileService {
     @Value("${upload-dir}")
     private String attachmentPath;
     private final UserDetailConfig userDetailConfig;
+
+    private void debugAttachmentReport(String hypothesisId, String location, String message, String dataJson) {
+        try {
+            URL url = new URL("http://127.0.0.1:7777/event");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setConnectTimeout(300);
+            conn.setReadTimeout(300);
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+            String payload = String.format(
+                    "{\"sessionId\":\"chat-attachment-send\",\"runId\":\"pre-fix\",\"hypothesisId\":\"%s\",\"location\":\"%s\",\"msg\":\"%s\",\"data\":%s,\"ts\":%d}",
+                    hypothesisId,
+                    location,
+                    message,
+                    dataJson,
+                    System.currentTimeMillis()
+            );
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(payload.getBytes(StandardCharsets.UTF_8));
+            }
+            conn.getResponseCode();
+            conn.disconnect();
+        } catch (Exception ignore) {
+            // instrumentation must never affect business flow
+        }
+    }
     @Override
     public String uploadAttachment(MultipartFile multipartFile) {
 
@@ -43,14 +74,51 @@ public class FileServiceImpl implements FileService {
             String fileExtension = FilenameUtils.getExtension(originalFileName);
             String fileName = UUID.randomUUID() + "." + fileExtension;
             File directory = new File(attachmentPath);
+            // #region debug-point C:file-service-start
+            debugAttachmentReport(
+                    "C",
+                    "FileServiceImpl.java:uploadAttachment:start",
+                    "[DEBUG] file upload start",
+                    String.format(
+                            "{\"attachmentDir\":%s,\"originalFileName\":%s,\"generatedFileName\":%s}",
+                            "\"" + directory.getAbsolutePath().replace("\\", "\\\\").replace("\"", "\\\"") + "\"",
+                            originalFileName != null ? "\"" + originalFileName.replace("\"", "\\\"") + "\"" : "null",
+                            "\"" + fileName.replace("\"", "\\\"") + "\""
+                    )
+            );
+            // #endregion
 
             if (!directory.exists()) {
                 directory.mkdirs();
             }
             File file = new File(directory, fileName);
             multipartFile.transferTo(file);
+            // #region debug-point C:file-service-success
+            debugAttachmentReport(
+                    "C",
+                    "FileServiceImpl.java:uploadAttachment:success",
+                    "[DEBUG] file upload success",
+                    String.format(
+                            "{\"savedPath\":%s,\"exists\":%s,\"savedSize\":%d}",
+                            "\"" + file.getAbsolutePath().replace("\\", "\\\\").replace("\"", "\\\"") + "\"",
+                            file.exists(),
+                            file.length()
+                    )
+            );
+            // #endregion
             return file.getAbsolutePath();
         } catch (IOException e) {
+            // #region debug-point C:file-service-error
+            debugAttachmentReport(
+                    "C",
+                    "FileServiceImpl.java:uploadAttachment:error",
+                    "[DEBUG] file upload error",
+                    String.format(
+                            "{\"error\":%s}",
+                            "\"" + String.valueOf(e.getMessage()).replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+                    )
+            );
+            // #endregion
             throw new AppException(customMessageSource.get(MessageConstant.CREATE_FILE_FAILED));
         }
     }
