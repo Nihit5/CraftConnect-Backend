@@ -307,11 +307,13 @@ public class ChatServiceImpl implements ChatService {
     @Override
     @Transactional
     public void markAsRead(Long conversationId, Long readerId) {
+        log.info("Mark as read api hit, {}", readerId);
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new AppException("Conversation not found."));
 
         boolean isParticipant = conversation.getUserOne().getId().equals(readerId)
                 || conversation.getUserTwo().getId().equals(readerId);
+        log.info("participant {}", isParticipant);
         if (!isParticipant) {
             throw new AppException("You are not part of this conversation.");
         }
